@@ -1,0 +1,1048 @@
+// gldf-search — minimal stylesheet. No framework; the page is small.
+
+$accent: #1f6fd0;
+$muted: #6c7280;
+$bg: #fafbfc;
+$bg-card: #ffffff;
+$border: #e3e6ea;
+$text: #1c1e22;
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    background: $bg;
+    color: $text;
+    line-height: 1.4;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+}
+
+.site-header {
+    border-bottom: 1px solid $border;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    h1 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 600;
+    }
+    .scope-name {
+        // Per-manufacturer subdomain banner — set when nginx forwards
+        // the `X-Manufacturer` header. Tinted accent so the user
+        // notices the lock without competing with the wordmark.
+        color: $accent;
+        font-weight: 500;
+    }
+    .tagline {
+        margin: 0.2rem 0 0;
+        color: $muted;
+        font-size: 0.9rem;
+    }
+}
+
+.top-bar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+    margin-bottom: 0.5rem;
+    .search-bar {
+        flex: 1;
+        margin-bottom: 0;
+    }
+}
+
+.search-input-armed {
+    border-color: #c25e1e !important;
+    box-shadow: 0 0 0 3px rgba(#c25e1e, 0.2) !important;
+}
+
+.fulltext-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.025);
+    font-size: 0.85rem;
+    color: $muted;
+    &.fulltext-toggle-armed {
+        background: rgba(#c25e1e, 0.08);
+        color: #7a3911;
+    }
+}
+
+.fulltext-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+    input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
+        accent-color: #c25e1e;
+    }
+}
+
+.fulltext-warning {
+    color: #c25e1e;
+    font-weight: 600;
+}
+
+.fulltext-countdown {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: #7a3911;
+    background: rgba(#c25e1e, 0.14);
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+}
+
+.article-bar {
+    display: flex;
+    gap: 0.35rem;
+    align-items: stretch;
+    flex: 0 0 auto;
+    position: relative;
+}
+
+.article-suggest {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    // Match the input width plus the Go button — a little wider so
+    // long product names breathe.
+    min-width: 100%;
+    max-width: 22rem;
+    max-height: 22rem;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    z-index: 20;
+}
+
+.article-suggest-item {
+    display: flex;
+    flex-direction: column;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    line-height: 1.25;
+    &:hover {
+        background: rgba($accent, 0.08);
+    }
+    .article-suggest-code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.88rem;
+        font-variant-numeric: tabular-nums;
+        color: $text;
+    }
+    .article-suggest-meta {
+        font-size: 0.78rem;
+        color: $muted;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.article-input {
+    width: 11rem;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid $border;
+    border-radius: 6px;
+    background: $bg-card;
+    font-variant-numeric: tabular-nums;
+    &:focus {
+        outline: none;
+        border-color: $accent;
+        box-shadow: 0 0 0 3px rgba($accent, 0.2);
+    }
+}
+
+.article-submit {
+    padding: 0.6rem 0.9rem;
+    border: 1px solid $accent;
+    background: $accent;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    &:hover { background: darken($accent, 8%); }
+}
+
+.article-notice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba($accent, 0.1);
+    color: $accent;
+    border: 1px solid rgba($accent, 0.25);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.article-clear {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 0.2rem;
+    opacity: 0.7;
+    &:hover { opacity: 1; }
+}
+
+.search-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+
+.facet-suggest {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 24rem;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    z-index: 20;
+}
+
+.facet-suggest-item {
+    display: grid;
+    grid-template-columns: 9rem 1fr auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+    line-height: 1.3;
+    &:hover {
+        background: rgba($accent, 0.08);
+    }
+    .facet-suggest-kind {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: $muted;
+        white-space: nowrap;
+    }
+    .facet-suggest-value {
+        color: $text;
+        font-size: 0.95rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .facet-suggest-count {
+        color: $muted;
+        font-size: 0.78rem;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.6rem 0.85rem;
+    font-size: 1rem;
+    border: 1px solid $border;
+    border-radius: 6px;
+    background: $bg-card;
+    &:focus {
+        outline: none;
+        border-color: $accent;
+        box-shadow: 0 0 0 3px rgba($accent, 0.2);
+    }
+}
+
+.reset-btn {
+    padding: 0.6rem 1rem;
+    border: 1px solid $border;
+    background: $bg-card;
+    border-radius: 6px;
+    cursor: pointer;
+    &:hover { background: darken($bg-card, 3%); }
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.facets {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 8px;
+    padding: 1rem;
+    .facet-group {
+        margin-bottom: 1.1rem;
+        position: relative;
+        &:last-child { margin-bottom: 0; }
+        h4 {
+            margin: 0 0 0.4rem;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: $muted;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.4rem;
+        }
+        .facet-group-count {
+            // Tabular numerals + non-uppercase so the count reads as
+            // metadata, not as part of the header text.
+            font-variant-numeric: tabular-nums;
+            font-size: 0.72rem;
+            text-transform: none;
+            letter-spacing: 0;
+            color: $muted;
+            font-weight: 500;
+        }
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            // Cap each group to keep 11 groups visible without
+            // a marathon scroll. Long lists (Manufacturer, Application)
+            // scroll internally.
+            max-height: 12rem;
+            overflow-y: auto;
+            // Always reserve gutter space so the scrollbar (if any)
+            // doesn't shift the rows on platforms with overlay
+            // scrollbars (macOS). Together with `::-webkit-scrollbar`
+            // styling below this makes "more below" obvious without
+            // hovering.
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+            // Webkit fallback — explicit thumb so the scroll affordance
+            // is visible on Safari/Chrome even without hover.
+            &::-webkit-scrollbar {
+                width: 8px;
+            }
+            &::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, 0.18);
+                border-radius: 4px;
+            }
+            &::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 0, 0, 0.32);
+            }
+        }
+        // Bottom-fade cue: only painted when the list overflows
+        // (controlled by the component setting `facet-group-overflows`).
+        // The pseudo-element sits inside the group, anchored to the
+        // bottom of the scrollable area, fading the last ~1.5rem of
+        // rows into the panel background. It does not catch pointer
+        // events so the user can still click rows underneath.
+        &.facet-group-overflows::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 8px; // account for the scrollbar gutter
+            bottom: 0;
+            height: 1.5rem;
+            background: linear-gradient(
+                to bottom,
+                rgba($bg-card, 0) 0%,
+                rgba($bg-card, 0.95) 90%,
+                $bg-card 100%
+            );
+            pointer-events: none;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+    }
+}
+
+// Hierarchical Application facet. Re-uses .facet-group container; adds
+// nested <details> styling so the 79-entry XSD taxonomy collapses to
+// 2 (Interior, Exterior) top rows by default, expandable to mid then
+// leaf. Each level inherits .facet-value rendering for the rows.
+.facet-tree {
+    .facet-tree-roots,
+    .facet-tree-mids,
+    .facet-tree-leaves {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    // The default .facet-group ul max-height applies to roots; reset
+    // it on inner uls so they grow naturally inside the open <details>.
+    .facet-tree-mids,
+    .facet-tree-leaves {
+        max-height: none;
+        overflow: visible;
+    }
+    details > summary {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.4rem;
+        padding: 0.25rem 0;
+        font-size: 0.85rem;
+        color: $text;
+        list-style: none;
+        &::-webkit-details-marker { display: none; }
+        &::before {
+            content: "▸";
+            display: inline-block;
+            width: 0.9rem;
+            font-size: 0.7rem;
+            color: $muted;
+            transition: transform 0.12s ease;
+        }
+    }
+    details[open] > summary::before {
+        transform: rotate(90deg);
+    }
+    .facet-tree-top > details > summary {
+        font-weight: 600;
+    }
+    .facet-tree-mid {
+        padding-left: 0.9rem;
+        > details > summary {
+            font-weight: 500;
+            color: $muted;
+            font-size: 0.82rem;
+        }
+    }
+    .facet-tree-leaves {
+        padding-left: 1.4rem;
+        .facet-value {
+            font-size: 0.82rem;
+        }
+    }
+    .facet-empty {
+        margin: 0;
+        font-size: 0.82rem;
+        color: $muted;
+        font-style: italic;
+    }
+}
+
+.ranges {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 8px;
+    padding: 1rem;
+    h4 {
+        margin: 0 0 0.6rem;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: $muted;
+    }
+}
+
+.range-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.6rem;
+    &:last-child { margin-bottom: 0; }
+    .range-label {
+        font-size: 0.8rem;
+        color: $text;
+    }
+    .range-inputs {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .range-dash {
+        color: $muted;
+        font-size: 0.85rem;
+    }
+}
+
+.range-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.85rem;
+    border: 1px solid $border;
+    border-radius: 4px;
+    background: $bg-card;
+    &:focus {
+        outline: none;
+        border-color: $accent;
+        box-shadow: 0 0 0 2px rgba($accent, 0.15);
+    }
+    &.range-single { max-width: 6rem; }
+}
+
+// Dual-handle range slider for numeric filters. Two `<input
+// type="range">` overlay each other; CSS reset on the bodies so
+// the visual track is invisible, then we restore pointer-events
+// on the thumbs only. The badge above the slider shows the live
+// (min, max) pair derived from the result-set bounds.
+.range-row {
+    .range-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.4rem;
+    }
+    .range-badge {
+        font-size: 0.78rem;
+        color: $muted;
+        font-variant-numeric: tabular-nums;
+    }
+    &.range-disabled {
+        opacity: 0.45;
+        .range-badge { color: $muted; }
+    }
+}
+
+.dual-slider {
+    position: relative;
+    height: 1.4rem;
+    margin: 0.1rem 0 0.2rem;
+    // Visible track behind both thumbs.
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0; right: 0;
+        top: 50%;
+        height: 3px;
+        margin-top: -1.5px;
+        background: $border;
+        border-radius: 2px;
+        pointer-events: none;
+    }
+    input[type="range"] {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: transparent;
+        // No native track — we draw our own via the ::before.
+        pointer-events: none;
+        -webkit-appearance: none;
+        appearance: none;
+        // Restore pointer events on the thumb only so both thumbs
+        // are draggable even when overlaid.
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            pointer-events: auto;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: $accent;
+            border: 2px solid $bg-card;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+            cursor: pointer;
+        }
+        &::-moz-range-thumb {
+            pointer-events: auto;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: $accent;
+            border: 2px solid $bg-card;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+            cursor: pointer;
+        }
+        &:disabled {
+            &::-webkit-slider-thumb { cursor: not-allowed; opacity: 0.5; }
+            &::-moz-range-thumb { cursor: not-allowed; opacity: 0.5; }
+        }
+        // Firefox draws its own track even when we hide it; suppress.
+        &::-moz-range-track { background: transparent; }
+    }
+}
+
+// Collapsible "enter exact value" disclosure under each slider.
+// Closed by default; opens to show the existing pair of number boxes.
+.range-exact {
+    margin-top: 0.2rem;
+    > summary {
+        cursor: pointer;
+        font-size: 0.72rem;
+        color: $muted;
+        list-style: none;
+        padding: 0.1rem 0;
+        &::-webkit-details-marker { display: none; }
+        &::before {
+            content: "▸";
+            display: inline-block;
+            width: 0.8rem;
+            font-size: 0.6rem;
+        }
+    }
+    &[open] > summary::before { content: "▾"; }
+    .range-label:empty { display: none; }
+}
+
+.facet-value {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.3rem 0.4rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    border-radius: 4px;
+    text-align: left;
+    font-size: 0.9rem;
+    &:hover { background: rgba($accent, 0.06); }
+    &.facet-selected {
+        background: rgba($accent, 0.15);
+        color: $accent;
+        font-weight: 600;
+    }
+    .facet-count {
+        color: $muted;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.8rem;
+    }
+    // LVK glyph variant: light-distribution rows have a small polar
+    // glyph next to the label. The glyph SVG comes from build.rs and
+    // has its own viewBox (64×64); CSS scales it to display size.
+    // Relux uses ~40 px circles; 32 px reads well in our sidebar.
+    &.facet-with-glyph {
+        align-items: center;
+        gap: 0.55rem;
+    }
+    .facet-glyph {
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    }
+    .facet-label {
+        flex: 1;
+    }
+}
+
+.results {
+    .result-count {
+        color: $muted;
+        font-size: 0.85rem;
+        margin: 0 0 0.75rem;
+    }
+}
+
+.hit-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.hit {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    .hit-header {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+    .hit-manufacturer {
+        color: $muted;
+        font-size: 0.85rem;
+    }
+    .hit-product {
+        font-weight: 600;
+    }
+    .hit-sku {
+        // Monospaced SKU / product code line. Sits right under the
+        // product name so identical product-name siblings reveal
+        // themselves at a glance (e.g. Glamox O52 → "O52-380 LED
+        // 13000 840 WBA").
+        margin-top: 0.2rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.8rem;
+        color: $muted;
+        word-break: break-all;
+    }
+    .hit-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        margin-top: 0.35rem;
+        font-size: 0.85rem;
+        color: $text;
+    }
+    .hit-stat {
+        display: inline-flex;
+        align-items: baseline;
+        // Tabular numerals so "2680 lm" aligns with "13200 lm"
+        // across rows the user is comparing.
+        font-variant-numeric: tabular-nums;
+    }
+    .hit-stat-num {
+        font-weight: 600;
+    }
+    .hit-stat-unit {
+        color: $muted;
+        font-size: 0.78rem;
+        margin-left: 0.1rem;
+    }
+    .hit-keywords {
+        list-style: none;
+        margin: 0.45rem 0 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        li {
+            padding: 0.12rem 0.5rem;
+            background: rgba($accent, 0.07);
+            color: $accent;
+            border-radius: 999px;
+            font-size: 0.75rem;
+        }
+    }
+    // Variant-grain row: variant name accents inline with the
+    // product header, then the chips row carries everything else.
+    .hit-variant-name {
+        color: $muted;
+        font-size: 0.85rem;
+    }
+    .hit-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-top: 0.45rem;
+        font-size: 0.72rem;
+    }
+    .hit-chip {
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.05);
+        color: $text;
+        white-space: nowrap;
+        // Family-by-family colour tinting so the eye can tell the
+        // groups apart at a glance.
+        &.hit-chip-ip       { background: rgba(56, 142, 60, 0.12);  color: #2e7d32; }
+        &.hit-chip-lamp     { background: rgba(245, 124, 0, 0.12);  color: #c66100; }
+        &.hit-chip-cg       { background: rgba(94, 53, 177, 0.12);  color: #4527a0; }
+        &.hit-chip-mount    { background: rgba(2, 119, 189, 0.12);  color: #01579b; }
+        &.hit-chip-depth    { background: rgba(2, 119, 189, 0.07);  color: $muted; }
+        &.hit-chip-3d       { background: rgba(0, 0, 0, 0.08);      color: $text; font-weight: 500; }
+        &.hit-chip-em       { background: rgba(198, 40, 40, 0.12);  color: #b71c1c; }
+        &.hit-chip-app      { background: rgba($accent, 0.10);      color: $accent; }
+    }
+    // Description block: snippet by default, "more" toggle reveals
+    // the full text. Snippet ends with an ellipsis from the server.
+    .hit-description {
+        margin-top: 0.45rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        align-items: baseline;
+    }
+    .hit-description-text {
+        margin: 0;
+        font-size: 0.82rem;
+        color: $text;
+        flex: 1 1 auto;
+    }
+    .hit-description-toggle {
+        flex: 0 0 auto;
+        padding: 0;
+        background: transparent;
+        border: none;
+        color: $accent;
+        cursor: pointer;
+        font-size: 0.78rem;
+        font-weight: 500;
+        &:hover { text-decoration: underline; }
+    }
+}
+
+.badge-variant-count {
+    background: rgba($accent, 0.1);
+    color: $accent;
+}
+
+// `.badge.badge-clickable` — the variant-count badge is also a
+// button when there are multiple variants. Subtle hover affordance
+// to suggest interactivity without overwhelming the row.
+.badge-clickable {
+    cursor: pointer;
+    border: none;
+    font: inherit;
+    transition: background 0.12s ease;
+    &:hover { background: rgba($accent, 0.18); }
+}
+
+// Variant drilldown table — expands inline beneath the row when
+// the badge is clicked. Compact columns; the polar column is the
+// per-variant fetch trigger.
+.hit-variants {
+    margin-top: 0.6rem;
+    overflow-x: auto;
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+    th, td {
+        text-align: left;
+        padding: 0.3rem 0.55rem;
+        border-bottom: 1px solid $border;
+        white-space: nowrap;
+    }
+    th {
+        font-weight: 500;
+        color: $muted;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .v-idx {
+        color: $muted;
+        font-variant-numeric: tabular-nums;
+        width: 2rem;
+    }
+    .v-name {
+        font-weight: 500;
+        max-width: 28ch;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .v-stats {
+        color: $muted;
+        font-variant-numeric: tabular-nums;
+    }
+    .v-mounting, .v-depth {
+        color: $muted;
+    }
+    .v-action {
+        text-align: right;
+    }
+    .variant-row-active {
+        background: rgba($accent, 0.08);
+    }
+}
+
+// Variant label above the polar/image pane: "Variant 3 of 12".
+.hit-expand-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.78rem;
+    color: $muted;
+    font-variant-numeric: tabular-nums;
+}
+.hit-expand-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: flex-start;
+    > .hit-image,
+    > .hit-polar {
+        flex: 1 1 240px;
+        min-width: 0;
+        margin-top: 0;
+    }
+}
+
+.polar-toggle {
+    margin-left: auto;
+    padding: 0.18rem 0.55rem;
+    background: transparent;
+    color: $accent;
+    border: 1px solid rgba($accent, 0.4);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    &:hover { background: rgba($accent, 0.08); }
+}
+
+// When both the polar toggle AND the viewer link are present, push
+// the viewer link past the polar toggle.
+.hit .hit-header .viewer-link {
+    margin-left: 0;
+}
+.hit .hit-header .polar-toggle + .viewer-link {
+    margin-left: 0.35rem;
+}
+
+// Expand pane that holds the variant label + the
+// image/polar row. The row layout itself lives on
+// `.hit-expand-row` (declared above with the variant-table block).
+.hit-expand {
+    margin-top: 0.6rem;
+}
+
+.hit-image {
+    padding: 0.5rem;
+    background: $bg;
+    border-radius: 6px;
+    border: 1px solid $border;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 120px;
+    img {
+        max-width: 100%;
+        max-height: 240px;
+        height: auto;
+        width: auto;
+        // White card behind potentially transparent PNGs.
+        background: #fff;
+        padding: 0.25rem;
+        border-radius: 4px;
+    }
+    p { margin: 0; color: $muted; }
+}
+
+.hit-polar {
+    padding: 0.5rem;
+    background: $bg;
+    border-radius: 6px;
+    border: 1px solid $border;
+    display: flex;
+    justify-content: center;
+    svg {
+        width: 240px;
+        max-width: 100%;
+        height: auto;
+    }
+    .empty {
+        margin: 0;
+        padding: 0.3rem 0.5rem;
+    }
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.badge-missing {
+    background: #f4d8d8;
+    color: #6a2424;
+}
+
+.viewer-link {
+    margin-left: auto;
+    padding: 0.18rem 0.6rem;
+    background: $accent;
+    color: white;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    text-decoration: none;
+    white-space: nowrap;
+    &:hover { background: darken($accent, 8%); }
+}
+
+.empty, .error {
+    color: $muted;
+    padding: 1rem;
+}
+.error { color: #b03030; }
+
+// Invisible sentinel — the IntersectionObserver watches this. 1 px
+// tall so it doesn't consume vertical space; transparent so nothing
+// shows. Margin so it sits ~1 rem below the last hit row, giving
+// the observer some headroom before the user reaches the bottom.
+.hit-sentinel {
+    height: 1px;
+    margin-top: 1rem;
+    visibility: hidden;
+}
+
+// Fallback "Load more" button for keyboard users / no-IntersectionObserver
+// browsers. Sighted scrolling users will rarely see it because the
+// sentinel fires first; but it's a real button you can tab to.
+.load-more {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid $border;
+    background: $bg-card;
+    color: $text;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    &:hover:not(:disabled) {
+        background: rgba($accent, 0.06);
+        border-color: $accent;
+    }
+    &:disabled {
+        opacity: 0.6;
+        cursor: progress;
+    }
+}
+
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 0.85rem;
+    &.filter-chips-empty { margin: 0; }
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.18rem 0.5rem 0.18rem 0.65rem;
+    background: rgba($accent, 0.1);
+    color: $accent;
+    border: 1px solid rgba($accent, 0.25);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    line-height: 1.4;
+    &:hover { background: rgba($accent, 0.18); }
+    .filter-chip-x {
+        font-size: 0.95rem;
+        line-height: 1;
+        opacity: 0.8;
+    }
+}

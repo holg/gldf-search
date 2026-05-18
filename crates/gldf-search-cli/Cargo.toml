@@ -1,0 +1,36 @@
+[package]
+name = "gldf-search-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Command-line tools for the gldf-search index: corpus sampling, extraction, index build."
+
+[[bin]]
+name = "gldf-search"
+path = "src/main.rs"
+
+[dependencies]
+gldf-rs.workspace = true
+gldf-search-schema.workspace = true
+gldf-search-gldf.workspace = true
+gldf-search-index.workspace = true
+smallvec.workspace = true
+compact_str.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+rand.workspace = true
+blake3.workspace = true
+anyhow.workspace = true
+dotenvy.workspace = true
+# Parallel corpus extraction for the `build-index` subcommand. The
+# server intentionally stays single-threaded on production (one
+# core); local index builds happily use every core available and
+# rsync the resulting cache to the server.
+rayon = "1.10"
+# Repackage benchmark — read existing GLDF (deflate) and re-archive
+# with Zstd (ZIP method 93) to measure compression headroom on the
+# corpus. Local-only; the runtime path uses gldf-rs's zip dep.
+zip = { version = "2", default-features = false, features = ["deflate", "zstd"] }

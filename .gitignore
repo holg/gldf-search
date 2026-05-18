@@ -1,0 +1,24 @@
+# Local Claude / MCP config (machine-specific absolute paths)
+.mcp.json
+.claude/settings.local.json
+
+# Per-deploy secrets (SSH hosts, prod paths, corpus mount points).
+# Kept out of git per the project's deploy-target memo.
+.env
+.env.*
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Locally-built bincode index cache (1.6 GB at 270k docs).
+# Kept outside `target/` so `cargo clean` doesn't nuke an 8-minute
+# rebuild. See scripts/build_index_local.sh.
+.index/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

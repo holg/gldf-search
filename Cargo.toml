@@ -1,0 +1,151 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/gldf-search-cli",
+    "crates/gldf-search-gldf",
+    "crates/gldf-search-index",
+    "crates/gldf-search-leptos",
+    "crates/gldf-search-schema",
+    "crates/gldf-search-server",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+authors = ["Holger Trahe <trahe@mac.com>"]
+license = "AGPL-3.0-or-later"
+rust-version = "1.75"
+
+[workspace.dependencies]
+gldf-rs = { path = "../gldf-rs/crates/gldf-rs-lib", default-features = false, features = ["eulumdat"] }
+# Photometric LDT parser, also pulled in transitively by gldf-rs's
+# `eulumdat` feature. We path-dep directly so we can `use eulumdat::*`
+# without going through gldf-rs (which doesn't re-export the crate).
+# Same path the gldf-rs workspace uses, so cargo unifies into one
+# version.
+eulumdat = { path = "../eulumdat-rs/crates/eulumdat" }
+gldf-search-schema = { path = "crates/gldf-search-schema" }
+gldf-search-gldf = { path = "crates/gldf-search-gldf" }
+gldf-search-index = { path = "crates/gldf-search-index" }
+gldf-search-leptos = { path = "crates/gldf-search-leptos" }
+
+# Leptos stack — 0.8.x. Each consumer picks the features it needs
+# (ssr for the server binary, hydrate for the wasm bundle).
+leptos = { version = "0.8", default-features = false }
+leptos_axum = { version = "0.8", default-features = false }
+leptos_meta = { version = "0.8", default-features = false }
+leptos_router = { version = "0.8", default-features = false }
+console_error_panic_hook = "0.1"
+# Thaw UI 0.5.0-beta was evaluated and rejected (2026-05-13) because
+# its `thaw_utils` pins `reactive_stores = "0.2.5"`, MAJOR-version
+# incompatible with the `reactive_stores 0.4.x` that Leptos 0.8's
+# `tachys` requires. Two copies of `reactive_stores` would coexist in
+# the graph — bundle bloat plus correctness risk. Re-evaluate when
+# Thaw 0.5 stable (or 0.6) lifts the pin.
+# Pinned to match cargo-leptos 0.3.6's bundled wasm-bindgen-cli (0.2.114).
+# Bumping requires `cargo install -f wasm-bindgen-cli --version <new>`
+# on the dev box; pin upgrades wait until that's coordinated.
+wasm-bindgen = "=0.2.114"
+
+# Server-side stack (native, used by gldf-search-server).
+axum = "0.8"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["fs", "trace", "cors"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dotenvy = "0.15"
+urlencoding = "2"
+# Serialisation for the on-disk extracted-doc cache. bincode 1.x stays
+# stable across our server + CLI; rkyv is reserved for the future .ldb
+# format (concept §6). The cache is a pure performance optimisation —
+# any schema change invalidates it and the server falls back to a
+# fresh extract.
+bincode = "1"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+smallvec = { version = "1", features = ["serde", "const_generics"] }
+compact_str = { version = "0.8", features = ["serde"] }
+regex = { version = "1", default-features = false, features = ["std", "perf"] }
+# SIMD substring search — used by the free-text filter's hot loop.
+# Replaces a hand-rolled ASCII-fold byte loop that was O(hay × needle)
+# with vectorized memchr::memmem::find_iter, ~5–10× faster on long
+# descriptions. wasm-clean (no_std-compatible), no transitive deps.
+memchr = "2"
+
+# CLI-only deps. Native-only; not used by schema/index/leptos crates.
+clap = { version = "4.5", features = ["derive", "env"] }
+rand = "0.8"
+blake3 = "1.5"
+anyhow = "1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+# Used by `scripts/deploy_to_server.sh`. Distinct from `release` so
+# the production build can pay the cost of fat LTO + symbol stripping
+# without slowing down the local `cargo build --release` developer
+# loop. The deploy script's `BUILD_PROFILE` variable picks this.
+[profile.release-prod]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
+
+# cargo-leptos project definitions. One entry per "leptos app" — for
+# us, just one. Multi-crate setup: bin and lib are separate crates,
+# referenced by name. Run with `cargo leptos build` from the workspace
+# root.
+[[workspace.metadata.leptos]]
+name = "gldf-search"
+# Crate containing the Axum server (cdylib not required here).
+bin-package = "gldf-search-server"
+# Crate compiled to wasm32-unknown-unknown for the browser.
+lib-package = "gldf-search-leptos"
+# Output asset name. The browser fetches `/pkg/gldf-search-leptos.js`
+# and `.wasm`; this is the prefix.
+# Asset prefix. Browser fetches `/pkg/gldf-search.{js,wasm,css}`.
+# Overridden at runtime by the `LEPTOS_OUTPUT_NAME` env var (read from
+# `.env` by both cargo-leptos and our binary's `provide_meta_context`
+# via `LeptosOptions`). Keep this in sync with `.env` so plain
+# `cargo leptos build` produces the same asset names as the deploy.
+output-name = "gldf-search"
+# Where cargo-leptos drops the served site root.
+site-root = "target/site"
+# Sub-path under site-root for hashed assets.
+site-pkg-dir = "pkg"
+# Source SCSS (compiled to /pkg/gldf-search-leptos.css).
+style-file = "crates/gldf-search-leptos/style/main.scss"
+# Cargo features for each side of the build.
+bin-features = []
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+# Profile used when cargo-leptos is invoked with `--release` (e.g. by
+# the deploy scripts). Binds both the binary and the wasm bundle to
+# our `release-prod` profile (fat LTO + symbol strip) so the deploy's
+# path check `target/<triple>/release-prod/<bin>` resolves.
+bin-profile-release = "release-prod"
+lib-profile-release = "release-prod"
+# Dev server.
+# Match the production `LEPTOS_SITE_ADDR` from `.env` so the dev
+# server and the deployed binary use the same port. `3090` is the
+# nginx upstream port; collision-free in practice. If you need a
+# different dev port temporarily, override on the command line:
+#   cargo leptos serve --site-addr 127.0.0.1:3091
+site-addr = "127.0.0.1:3090"
+# Reload websocket for `cargo leptos watch`. Dev-only; never used in
+# production. Adjacent to `site-addr` for easy grep.
+reload-port = 3091
+browserquery = "defaults"
+# Hashed asset filenames + hash.txt manifest. Required for the prod
+# systemd unit's `LEPTOS_HASH_FILES=true`. Three things must agree:
+# (a) this flag (so cargo-leptos writes hash.txt and renames assets);
+# (b) the deploy script ships hash.txt next to the binary (Leptos reads
+#     it via `std::env::current_exe().parent().join(hash_file)`); and
+# (c) the Leptos shell uses `<HashedStylesheet options=.../>` from
+#     leptos_meta so the CSS href emitted in SSR'd HTML matches the
+#     hashed filename on disk.
+hash-files = true

@@ -1,0 +1,98 @@
+[package]
+name = "gldf-search-leptos"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Leptos SSR + hydrate UI for gldf-search."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Schema types crossing the SSR/CSR boundary.
+gldf-search-schema.workspace = true
+# `gldf-search-index` is wasm-clean so we depend unconditionally —
+# server-fn signatures reference `FacetCounts`, `Pagination`, etc. on
+# both sides of the bridge.
+gldf-search-index.workspace = true
+serde.workspace = true
+smallvec.workspace = true
+compact_str.workspace = true
+
+# Leptos itself, gated by feature so the wasm bundle stays slim.
+leptos = { workspace = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
+leptos_axum = { workspace = true, optional = true }
+# SSR-only: read X-Manufacturer header off the request `Parts` Leptos
+# auto-provides. Transitively in the leptos_axum dep graph; declared
+# explicitly so the type path stays stable.
+axum = { workspace = true, optional = true }
+# SSR-only: encode product-image bytes for the `data:` URL payload
+# of `fetch_product_image`. Lazy server fn (per row-expand only).
+base64 = { version = "0.22", optional = true }
+# SSR-only: extractor crate is needed for the lazy LDT-from-GLDF fetch
+# server fn. Optional + ssr-gated so the wasm bundle stays slim.
+gldf-search-gldf = { workspace = true, optional = true }
+# SSR-only: tokio for `spawn_blocking` around the zip-read + LDT
+# extraction. Already in the leptos_axum transitive graph; we ask
+# for `rt` explicitly so the feature stays stable.
+tokio = { workspace = true, optional = true }
+# Hydrate-only: parse + render LDT files in the browser. Pulled in
+# only when `hydrate` is enabled. Compiles to wasm32 — no fs / no
+# tokio inside the parsing/rendering surface we touch.
+eulumdat = { workspace = true, optional = true }
+
+# Hydrate-side: forward panics to the browser console.
+console_error_panic_hook = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+# Browser-only async timers (used by the ArticleBar debouncer).
+# Tiny crate, no transitive bloat — pulled in only when `hydrate` is
+# enabled so it never lands in the server binary.
+gloo-timers = { version = "0.3", features = ["futures"], optional = true }
+# URL ↔ Filter sync (hydrate-only). Encodes/decodes query-string
+# values when mirroring the filter into `window.location.search`.
+urlencoding = { workspace = true, optional = true }
+# Browser-only DOM bindings (used by the infinite-scroll
+# IntersectionObserver in FilterResults). Already pulled in
+# transitively by leptos's hydrate path; we ask for it explicitly
+# so the `IntersectionObserver` cargo feature is enabled.
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true, features = [
+    "IntersectionObserver",
+    "IntersectionObserverEntry",
+    "IntersectionObserverInit",
+    # URL ↔ Filter sync: read window.location.search on mount and
+    # history.replaceState on every filter change.
+    "History",
+    "Location",
+    "Window",
+] }
+
+[features]
+default = []
+ssr = [
+    "dep:leptos_axum",
+    "dep:axum",
+    "dep:base64",
+    "dep:gldf-search-gldf",
+    "dep:tokio",
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+]
+hydrate = [
+    "dep:console_error_panic_hook",
+    "dep:wasm-bindgen",
+    "dep:gloo-timers",
+    "dep:js-sys",
+    "dep:web-sys",
+    "dep:eulumdat",
+    "dep:urlencoding",
+    "leptos/hydrate",
+]
+
+# The LVK glyph SVGs are emitted from `build.rs` using nothing but
+# std + a small polar projection. No third-party build-deps.

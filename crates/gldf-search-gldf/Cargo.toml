@@ -1,0 +1,20 @@
+[package]
+name = "gldf-search-gldf"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "GldfProduct → LuminaireDoc extractor. Maps typed XSD fields and mines variant Name strings for facet values."
+
+[dependencies]
+gldf-rs.workspace = true
+eulumdat.workspace = true
+gldf-search-schema.workspace = true
+serde.workspace = true
+smallvec.workspace = true
+compact_str.workspace = true
+regex.workspace = true
+blake3.workspace = true
+bincode.workspace = true
+anyhow.workspace = true

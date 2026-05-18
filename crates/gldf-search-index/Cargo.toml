@@ -1,0 +1,18 @@
+[package]
+name = "gldf-search-index"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Search index for gldf-search. v0 is a linear-scan reference implementation; fst+roaring index lands in v1."
+
+[dependencies]
+gldf-search-schema.workspace = true
+serde.workspace = true
+smallvec.workspace = true
+compact_str.workspace = true
+# Used by `fold::family_doc_id` for the deterministic family DocId
+# hash. The schema crate already depends on blake3 transitively via
+# gldf-search-gldf, but the index crate needs it directly.
+blake3.workspace = true

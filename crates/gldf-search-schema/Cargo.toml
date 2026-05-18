@@ -1,0 +1,19 @@
+[package]
+name = "gldf-search-schema"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Document, filter, and facet types for the gldf-search index. Reference predicates that the index must agree with."
+
+[dependencies]
+gldf-rs.workspace = true
+serde.workspace = true
+smallvec.workspace = true
+compact_str.workspace = true
+urlencoding.workspace = true
+memchr.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
