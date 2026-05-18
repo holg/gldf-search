@@ -5,7 +5,12 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "../../README.md"
 description = "Document, filter, and facet types for the gldf-search index. Reference predicates that the index must agree with."
+keywords = ["lighting", "gldf", "photometry", "search", "luminaire"]
+categories = ["data-structures", "science"]
 
 [dependencies]
 gldf-rs.workspace = true

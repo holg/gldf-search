@@ -5,7 +5,12 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "../../README.md"
 description = "Axum + Leptos SSR server for gldf-search. Holds an in-memory index and exposes /api/* endpoints."
+keywords = ["lighting", "gldf", "axum", "search", "server"]
+categories = ["web-programming::http-server", "command-line-utilities"]
 
 [[bin]]
 name = "gldf-search-server"

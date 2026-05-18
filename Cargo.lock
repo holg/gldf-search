@@ -916,8 +916,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "gldf-search-cli"
-version = "0.0.1"
+name = "gldf-search"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "blake3",
@@ -938,7 +938,7 @@ dependencies = [
 
 [[package]]
 name = "gldf-search-gldf"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
@@ -954,7 +954,7 @@ dependencies = [
 
 [[package]]
 name = "gldf-search-index"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "blake3",
  "compact_str",
@@ -965,7 +965,7 @@ dependencies = [
 
 [[package]]
 name = "gldf-search-leptos"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "axum",
  "base64",
@@ -991,7 +991,7 @@ dependencies = [
 
 [[package]]
 name = "gldf-search-schema"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "compact_str",
  "gldf-rs",
@@ -1004,7 +1004,7 @@ dependencies = [
 
 [[package]]
 name = "gldf-search-server"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",

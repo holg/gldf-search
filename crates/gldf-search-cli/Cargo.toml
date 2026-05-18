@@ -1,11 +1,23 @@
+# crates.io publish name = `gldf-search` so `cargo install gldf-search`
+# lands the index/search CLI binary. The crate directory is still
+# `gldf-search-cli` to mirror the other workspace members (-schema,
+# -gldf, -index, -leptos, -server); only the published package name
+# differs. Internal references inside the workspace's `[patch]` /
+# `[workspace.dependencies]` keep using the `gldf-search-cli` slot —
+# nothing depends on the cli crate as a library anyway.
 [package]
-name = "gldf-search-cli"
+name = "gldf-search"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "Command-line tools for the gldf-search index: corpus sampling, extraction, index build."
+repository.workspace = true
+homepage.workspace = true
+readme = "../../README.md"
+description = "Command-line tools for the gldf-search index: corpus extraction, family-fold dedup, search, sizing reports."
+keywords = ["lighting", "gldf", "photometry", "cli", "search"]
+categories = ["command-line-utilities", "science"]
 
 [[bin]]
 name = "gldf-search"

@@ -73,8 +73,11 @@ jobs:
         working-directory: gldf-search
         run: |
           set -e
+          # The cli crate publishes as `gldf-search` on crates.io but
+          # still lives under `crates/gldf-search-cli/`. Other crates
+          # match dir name = package name.
           for pkg in gldf-search-schema gldf-search-gldf gldf-search-index \
-                     gldf-search-leptos gldf-search-server gldf-search-cli; do
+                     gldf-search-leptos gldf-search-server gldf-search; do
             cargo fmt -p "$pkg" -- --check
           done
 

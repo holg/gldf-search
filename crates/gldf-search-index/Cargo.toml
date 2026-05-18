@@ -5,7 +5,12 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "../../README.md"
 description = "Search index for gldf-search. v0 is a linear-scan reference implementation; fst+roaring index lands in v1."
+keywords = ["lighting", "gldf", "search", "index", "facets"]
+categories = ["data-structures", "science"]
 
 [dependencies]
 gldf-search-schema.workspace = true

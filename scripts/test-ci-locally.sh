@@ -42,8 +42,12 @@ echo -e "    server:   $SERVER_PKG\n"
 # to our checks. Iterate explicitly over our own workspace members.
 echo -e "${YELLOW}Step 1: cargo fmt check...${NC}"
 fmt_failed=0
+# Note: the cli crate was renamed to `gldf-search` at the
+# [package].name level (so `cargo install gldf-search` lands the
+# binary). Directory is still `crates/gldf-search-cli`; only the
+# published package name differs.
 for pkg in gldf-search-schema gldf-search-gldf gldf-search-index \
-           gldf-search-leptos gldf-search-server gldf-search-cli; do
+           gldf-search-leptos gldf-search-server gldf-search; do
     if ! cargo fmt -p "$pkg" -- --check; then
         echo -e "${RED}✗ fmt failed for $pkg${NC}"
         fmt_failed=1

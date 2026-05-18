@@ -5,7 +5,12 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "../../README.md"
 description = "GldfProduct → LuminaireDoc extractor. Maps typed XSD fields and mines variant Name strings for facet values."
+keywords = ["lighting", "gldf", "eulumdat", "photometry", "extractor"]
+categories = ["parser-implementations", "science"]
 
 [dependencies]
 gldf-rs.workspace = true
