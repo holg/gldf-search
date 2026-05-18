@@ -25,10 +25,10 @@ homepage = "https://github.com/holg/gldf-search"
 # the version requirement, so versions here must stay in lock-step
 # with crates.io.
 #
-# Audited 2026-05-18:
+# Audited 2026-05-19:
 #   - eulumdat 0.7.0  on crates.io ↔ local sibling 0.7.0 ✓
-#   - gldf-rs 0.3.4   on crates.io (shipped `validation::xsd_enums`) ✓
-gldf-rs = { path = "../gldf-rs/crates/gldf-rs-lib", version = "0.3.4", default-features = false, features = ["eulumdat"] }
+#   - gldf-rs 0.4.0   on crates.io (validation/xsd_enums.rs landed) ✓
+gldf-rs = { path = "../gldf-rs/crates/gldf-rs-lib", version = "0.4.0", default-features = false, features = ["eulumdat"] }
 # Photometric LDT parser, also pulled in transitively by gldf-rs's
 # `eulumdat` feature. We path-dep directly so we can `use eulumdat::*`
 # without going through gldf-rs (which doesn't re-export the crate).
