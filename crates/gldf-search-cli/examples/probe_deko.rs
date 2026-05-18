@@ -115,7 +115,10 @@ fn main() -> Result<()> {
             println!("  variants     = {}", doc.variants.len());
             println!(
                 "  with phot    = {}",
-                doc.variants.iter().filter(|v| v.photometry.is_some()).count()
+                doc.variants
+                    .iter()
+                    .filter(|v| v.photometry.is_some())
+                    .count()
             );
             let apps: Vec<&'static str> = doc
                 .applications

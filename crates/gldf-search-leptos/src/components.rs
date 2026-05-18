@@ -9,18 +9,18 @@ use compact_str::CompactString;
 use gldf_search_index::{
     ArticleSuggestion, F32Bounds, FacetCounts, FacetSuggestion, RangeBounds, U16Bounds, U32Bounds,
 };
-use leptos::server_fn::ServerFnError;
 use gldf_search_schema::doc::{LuminaireDoc, MountingPlace, MountingType};
 use gldf_search_schema::enums::{
     adjustability_from_str, adjustability_str, application_from_str, application_mid,
-    application_str, application_top, control_gear_interface_from_str,
-    control_gear_interface_str, emergency_lighting_type_from_str, emergency_lighting_type_str,
-    ik_rating_from_str, ik_rating_str, ip_code_from_str, ip_code_str, label_from_str, label_str,
-    lamp_type_from_str, lamp_type_str, light_distribution_from_str, light_distribution_str,
-    product_form_from_str, product_form_str, safety_class_from_str, safety_class_str,
+    application_str, application_top, control_gear_interface_from_str, control_gear_interface_str,
+    emergency_lighting_type_from_str, emergency_lighting_type_str, ik_rating_from_str,
+    ik_rating_str, ip_code_from_str, ip_code_str, label_from_str, label_str, lamp_type_from_str,
+    lamp_type_str, light_distribution_from_str, light_distribution_str, product_form_from_str,
+    product_form_str, safety_class_from_str, safety_class_str,
 };
 use gldf_search_schema::filter::Filter;
 use leptos::prelude::*;
+use leptos::server_fn::ServerFnError;
 use smallvec::SmallVec;
 
 /// Narrow article-number input with autosuggest dropdown.
@@ -560,12 +560,7 @@ pub fn HitRow(doc: LuminaireDoc, viewer_url: Option<String>) -> impl IntoView {
     // any photometry; the click pipeline handles a missing LDT
     // gracefully by rendering "No polar data."
     let _first_variant_id = doc.variants.first().map(|v| v.id.0);
-    let id_hex: String = doc
-        .id
-        .0
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect();
+    let id_hex: String = doc.id.0.iter().map(|b| format!("{b:02x}")).collect();
 
     let polar_open = RwSignal::new(false);
     // Variant currently displayed in the polar/image pane. `None`
@@ -612,10 +607,8 @@ pub fn HitRow(doc: LuminaireDoc, viewer_url: Option<String>) -> impl IntoView {
                     polar_loading.set(false);
                     match res {
                         Ok(Some(ldt_text)) => {
-                            let svg = crate::polar_client::render_polar_from_ldt(
-                                &ldt_text, 240.0,
-                            )
-                            .unwrap_or_default();
+                            let svg = crate::polar_client::render_polar_from_ldt(&ldt_text, 240.0)
+                                .unwrap_or_default();
                             polar_svg.set(Some(svg));
                         }
                         Ok(None) => polar_svg.set(Some(String::new())),
@@ -624,8 +617,7 @@ pub fn HitRow(doc: LuminaireDoc, viewer_url: Option<String>) -> impl IntoView {
                 });
                 leptos::task::spawn_local(async move {
                     let res =
-                        crate::api::fetch_product_image_for_variant(id_hex_i, variant_index)
-                            .await;
+                        crate::api::fetch_product_image_for_variant(id_hex_i, variant_index).await;
                     image_loading.set(false);
                     match res {
                         Ok(payload) => product_image.set(Some(payload)),
@@ -828,10 +820,18 @@ pub fn HitRow(doc: LuminaireDoc, viewer_url: Option<String>) -> impl IntoView {
 /// hit-row stats line).
 fn variant_stats_inline(p: &gldf_search_schema::doc::PhotometryStats) -> String {
     let mut parts: Vec<String> = Vec::with_capacity(5);
-    if let Some(f) = p.flux_lm { parts.push(format!("{} lm", f as u32)); }
-    if let Some(pw) = p.power_w { parts.push(format!("{} W", pw as u32)); }
-    if let Some(cct) = p.cct_k { parts.push(format!("{} K", cct)); }
-    if let Some(b) = p.beam_deg { parts.push(format!("{}°", b as u32)); }
+    if let Some(f) = p.flux_lm {
+        parts.push(format!("{} lm", f as u32));
+    }
+    if let Some(pw) = p.power_w {
+        parts.push(format!("{} W", pw as u32));
+    }
+    if let Some(cct) = p.cct_k {
+        parts.push(format!("{} K", cct));
+    }
+    if let Some(b) = p.beam_deg {
+        parts.push(format!("{}°", b as u32));
+    }
     parts.join(" · ")
 }
 
@@ -846,9 +846,7 @@ fn variant_stats_inline(p: &gldf_search_schema::doc::PhotometryStats) -> String 
 /// The aim is "enough context to tell two SKU rows apart at a
 /// glance" — not a full datasheet. Detailed photometry belongs on a
 /// hover / detail page (future work).
-fn render_phot_stats(
-    p: &gldf_search_schema::doc::PhotometryStats,
-) -> impl leptos::IntoView {
+fn render_phot_stats(p: &gldf_search_schema::doc::PhotometryStats) -> impl leptos::IntoView {
     let mut parts: Vec<(String, &'static str)> = Vec::with_capacity(5);
     if let Some(v) = p.flux_lm {
         parts.push((format!("{}", v.round() as i64), "lm"));
@@ -941,7 +939,8 @@ pub fn FacetPanel(
     /// the server-side scope anyway, so the affordance is just a
     /// footgun. The corresponding `<FilterChips>` chip is also
     /// suppressed via the same flag.
-    #[prop(optional)] manufacturer_locked: bool,
+    #[prop(optional)]
+    manufacturer_locked: bool,
 ) -> impl IntoView {
     view! {
         <aside class="facets">
@@ -1318,7 +1317,8 @@ pub fn FilterChips(
     /// See `FacetPanel::manufacturer_locked` — when set, the
     /// Manufacturer chip is hidden because the subdomain enforces it
     /// server-side and clicking ✕ would be ignored.
-    #[prop(optional)] manufacturer_locked: bool,
+    #[prop(optional)]
+    manufacturer_locked: bool,
 ) -> impl IntoView {
     let chips = move || {
         filter.with(|f| {
@@ -1424,7 +1424,13 @@ fn collect_chips(f: &Filter) -> Vec<Chip> {
         }
     }
 
-    push_id_chips(&mut out, ChipKind::Application, "Application", &f.applications, application_str);
+    push_id_chips(
+        &mut out,
+        ChipKind::Application,
+        "Application",
+        &f.applications,
+        application_str,
+    );
     push_id_chips(&mut out, ChipKind::Label, "Label", &f.labels, label_str);
     push_id_chips(&mut out, ChipKind::IpCode, "IP", &f.ip_code, ip_code_str);
     push_id_chips(
@@ -1434,7 +1440,13 @@ fn collect_chips(f: &Filter) -> Vec<Chip> {
         &f.safety_class,
         safety_class_str,
     );
-    push_id_chips(&mut out, ChipKind::IkRating, "IK", &f.ik_rating, ik_rating_str);
+    push_id_chips(
+        &mut out,
+        ChipKind::IkRating,
+        "IK",
+        &f.ik_rating,
+        ik_rating_str,
+    );
     push_id_chips(
         &mut out,
         ChipKind::ProductForm,
@@ -1456,7 +1468,13 @@ fn collect_chips(f: &Filter) -> Vec<Chip> {
         &f.light_distribution,
         light_distribution_str,
     );
-    push_id_chips(&mut out, ChipKind::LampType, "Lamp", &f.lamp_type, lamp_type_str);
+    push_id_chips(
+        &mut out,
+        ChipKind::LampType,
+        "Lamp",
+        &f.lamp_type,
+        lamp_type_str,
+    );
     push_id_chips(
         &mut out,
         ChipKind::ControlGearInterface,
@@ -1628,12 +1646,12 @@ fn remove_chip(f: &mut Filter, kind: ChipKind, value: &str) {
         ChipKind::SafetyClass => remove_id(&mut f.safety_class, value, safety_class_from_str),
         ChipKind::IkRating => remove_id(&mut f.ik_rating, value, ik_rating_from_str),
         ChipKind::ProductForm => remove_id(&mut f.product_form, value, product_form_from_str),
-        ChipKind::Adjustability => {
-            remove_id(&mut f.adjustability, value, adjustability_from_str)
-        }
-        ChipKind::LightDistribution => {
-            remove_id(&mut f.light_distribution, value, light_distribution_from_str)
-        }
+        ChipKind::Adjustability => remove_id(&mut f.adjustability, value, adjustability_from_str),
+        ChipKind::LightDistribution => remove_id(
+            &mut f.light_distribution,
+            value,
+            light_distribution_from_str,
+        ),
         ChipKind::MountingPlace => {
             if let Some(g) = mounting_place_from_str(value) {
                 if let Some(pos) = f.mounting_place.iter().position(|x| *x == g) {
@@ -1908,7 +1926,11 @@ fn DualSliderF32(
         if disabled.get() {
             "—".to_string()
         } else {
-            format!("{} – {}", format_f32(handle_min.get()), format_f32(handle_max.get()))
+            format!(
+                "{} – {}",
+                format_f32(handle_min.get()),
+                format_f32(handle_max.get())
+            )
         }
     };
 
@@ -2245,11 +2267,7 @@ fn RangeF32(
 
     let get_min = {
         let get = get.clone();
-        move || {
-            get()
-                .map(|r| format!("{}", r.start()))
-                .unwrap_or_default()
-        }
+        move || get().map(|r| format!("{}", r.start())).unwrap_or_default()
     };
     let get_max = {
         let get = get.clone();
@@ -2273,7 +2291,10 @@ fn RangeF32(
         move |ev: leptos::ev::Event| {
             let raw = event_target_value(&ev);
             let cur = get();
-            let min = cur.as_ref().map(|r| *r.start()).unwrap_or(f32::NEG_INFINITY);
+            let min = cur
+                .as_ref()
+                .map(|r| *r.start())
+                .unwrap_or(f32::NEG_INFINITY);
             let new_max = raw.trim().parse::<f32>().ok();
             set(build_range_f32(finite_or_none(min), new_max));
         }
@@ -2315,11 +2336,7 @@ fn RangeU16(
 
     let get_min = {
         let get = get.clone();
-        move || {
-            get()
-                .map(|r| format!("{}", r.start()))
-                .unwrap_or_default()
-        }
+        move || get().map(|r| format!("{}", r.start())).unwrap_or_default()
     };
     let get_max = {
         let get = get.clone();
@@ -2385,11 +2402,7 @@ fn RangeU32(
 
     let get_min = {
         let get = get.clone();
-        move || {
-            get()
-                .map(|r| format!("{}", r.start()))
-                .unwrap_or_default()
-        }
+        move || get().map(|r| format!("{}", r.start())).unwrap_or_default()
     };
     let get_max = {
         let get = get.clone();
@@ -2447,9 +2460,7 @@ fn RangeU32(
 /// filtered out; blank clears.
 #[component]
 fn CriMin(filter: RwSignal<Filter>) -> impl IntoView {
-    let get_val = move || {
-        filter.with(|f| f.cri_min.map(|v| v.to_string()).unwrap_or_default())
-    };
+    let get_val = move || filter.with(|f| f.cri_min.map(|v| v.to_string()).unwrap_or_default());
     let on_input = move |ev: leptos::ev::Event| {
         let raw = event_target_value(&ev);
         let parsed = raw.trim().parse::<u8>().ok();
@@ -2482,10 +2493,7 @@ fn finite_or_none(v: f32) -> Option<f32> {
     }
 }
 
-fn build_range_f32(
-    min: Option<f32>,
-    max: Option<f32>,
-) -> Option<core::ops::RangeInclusive<f32>> {
+fn build_range_f32(min: Option<f32>, max: Option<f32>) -> Option<core::ops::RangeInclusive<f32>> {
     match (min, max) {
         (None, None) => None,
         (Some(lo), Some(hi)) => Some(lo..=hi),
@@ -2497,10 +2505,7 @@ fn build_range_f32(
     }
 }
 
-fn build_range_u16(
-    min: Option<u16>,
-    max: Option<u16>,
-) -> Option<core::ops::RangeInclusive<u16>> {
+fn build_range_u16(min: Option<u16>, max: Option<u16>) -> Option<core::ops::RangeInclusive<u16>> {
     match (min, max) {
         (None, None) => None,
         (Some(lo), Some(hi)) => Some(lo..=hi),
@@ -2509,10 +2514,7 @@ fn build_range_u16(
     }
 }
 
-fn build_range_u32(
-    min: Option<u32>,
-    max: Option<u32>,
-) -> Option<core::ops::RangeInclusive<u32>> {
+fn build_range_u32(min: Option<u32>, max: Option<u32>) -> Option<core::ops::RangeInclusive<u32>> {
     match (min, max) {
         (None, None) => None,
         (Some(lo), Some(hi)) => Some(lo..=hi),
@@ -2924,18 +2926,13 @@ pub fn VariantRow(payload: crate::api::VariantPayloadSlim) -> impl IntoView {
             #[cfg(target_arch = "wasm32")]
             {
                 leptos::task::spawn_local(async move {
-                    let res = crate::api::fetch_ldt_for_variant(
-                        id_hex_p,
-                        Some(variant_index),
-                    )
-                    .await;
+                    let res =
+                        crate::api::fetch_ldt_for_variant(id_hex_p, Some(variant_index)).await;
                     polar_loading.set(false);
                     match res {
                         Ok(Some(ldt_text)) => {
-                            let svg = crate::polar_client::render_polar_from_ldt(
-                                &ldt_text, 240.0,
-                            )
-                            .unwrap_or_default();
+                            let svg = crate::polar_client::render_polar_from_ldt(&ldt_text, 240.0)
+                                .unwrap_or_default();
                             polar_svg.set(Some(svg));
                         }
                         Ok(None) => polar_svg.set(Some(String::new())),
@@ -2943,11 +2940,9 @@ pub fn VariantRow(payload: crate::api::VariantPayloadSlim) -> impl IntoView {
                     }
                 });
                 leptos::task::spawn_local(async move {
-                    let res = crate::api::fetch_product_image_for_variant(
-                        id_hex_i,
-                        Some(variant_index),
-                    )
-                    .await;
+                    let res =
+                        crate::api::fetch_product_image_for_variant(id_hex_i, Some(variant_index))
+                            .await;
                     image_loading.set(false);
                     match res {
                         Ok(payload) => product_image.set(Some(payload)),

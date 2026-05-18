@@ -194,11 +194,15 @@ fn main() -> Result<()> {
     let family_unique = family_counts.len();
     println!(
         "Manufacturer strings: {} occurrences, {} unique (intern would collapse {})",
-        n, mfr_unique, n - mfr_unique as u64
+        n,
+        mfr_unique,
+        n - mfr_unique as u64
     );
     println!(
         "Product strings:      {} occurrences, {} unique (intern would collapse {})",
-        n, product_unique, n - product_unique as u64
+        n,
+        product_unique,
+        n - product_unique as u64
     );
     println!(
         "(manufacturer, product) families: {} unique — folding {} docs into {} groups would shrink the doc count by {:.1}%",
@@ -213,10 +217,9 @@ fn main() -> Result<()> {
         total_variants, variant_name_unique
     );
 
-    let mfr_intern_saved = manufacturer_bytes
-        .saturating_sub(estimated_intern_bytes(&mfr_counts));
-    let product_intern_saved = product_bytes
-        .saturating_sub(estimated_intern_bytes(&product_counts));
+    let mfr_intern_saved = manufacturer_bytes.saturating_sub(estimated_intern_bytes(&mfr_counts));
+    let product_intern_saved =
+        product_bytes.saturating_sub(estimated_intern_bytes(&product_counts));
     println!();
     println!("Projected savings from string-interning:");
     println!(

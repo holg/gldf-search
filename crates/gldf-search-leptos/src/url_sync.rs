@@ -115,9 +115,5 @@ fn write_query_string(qs: &str) {
     };
     // First arg `data` is null (we don't carry browser-history state).
     // Second arg `title` is ignored by most browsers; pass empty.
-    let _ = history.replace_state_with_url(
-        &wasm_bindgen::JsValue::NULL,
-        "",
-        Some(&new_url),
-    );
+    let _ = history.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&new_url));
 }

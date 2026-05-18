@@ -290,9 +290,7 @@ impl InMemoryIndex {
     ///
     /// Returns `(index, fold_stats)` so callers (the CLI / server)
     /// can log the dedup outcome.
-    pub fn from_docs_folded(
-        docs: Vec<LuminaireDoc>,
-    ) -> (Self, crate::fold::FoldStats) {
+    pub fn from_docs_folded(docs: Vec<LuminaireDoc>) -> (Self, crate::fold::FoldStats) {
         let (folded, aliases, stats) = crate::fold::fold_docs(docs);
         let me = Self::from_docs_with_aliases(folded, aliases);
         (me, stats)
@@ -301,10 +299,7 @@ impl InMemoryIndex {
     /// Build from already-folded docs plus an alias map
     /// `source_doc_id -> family_doc_id`. Every alias becomes a
     /// `by_id` entry pointing at the family's index in `docs`.
-    fn from_docs_with_aliases(
-        docs: Vec<LuminaireDoc>,
-        aliases: HashMap<DocId, DocId>,
-    ) -> Self {
+    fn from_docs_with_aliases(docs: Vec<LuminaireDoc>, aliases: HashMap<DocId, DocId>) -> Self {
         let mut by_id: HashMap<DocId, usize> = HashMap::with_capacity(docs.len() + aliases.len());
         let mut by_article: HashMap<CompactString, SmallVec<[u32; 1]>> = HashMap::new();
         let mut article_prefix: BTreeMap<CompactString, SmallVec<[ArticleEntry; 1]>> =
@@ -506,11 +501,7 @@ impl InMemoryIndex {
         // Sort by lowercased value so the prefix scan can use
         // `partition_point`. Stable order across values with the
         // same casing is fine — we re-rank inside `suggest_facets`.
-        all.sort_by(|a, b| {
-            a.value()
-                .to_lowercase()
-                .cmp(&b.value().to_lowercase())
-        });
+        all.sort_by_key(|a| a.value().to_lowercase());
         let lc: Vec<String> = all.iter().map(|s| s.value().to_lowercase()).collect();
         self.facet_suggest = all;
         self.facet_suggest_lc = lc;
@@ -1220,8 +1211,7 @@ fn emit_doc_values(doc: &LuminaireDoc, field: FacetField, counts: &mut BTreeMap<
                     (true, None) => {
                         if !seen_unspec {
                             seen_unspec = true;
-                            *counts.entry(UNSPECIFIED_EMERGENCY.to_string()).or_default() +=
-                                1;
+                            *counts.entry(UNSPECIFIED_EMERGENCY.to_string()).or_default() += 1;
                         }
                     }
                     (false, None) => {}
@@ -1511,9 +1501,13 @@ mod tests {
 
     #[test]
     fn suggest_articles_min_3_chars() {
-        let idx = InMemoryIndex::from_docs(vec![
-            mk_doc_with_codes(1, "Acme", "P1", None, Some("ART123")),
-        ]);
+        let idx = InMemoryIndex::from_docs(vec![mk_doc_with_codes(
+            1,
+            "Acme",
+            "P1",
+            None,
+            Some("ART123"),
+        )]);
         // Below the threshold: empty.
         assert!(idx.suggest_articles("ar", 10).is_empty());
         assert!(idx.suggest_articles("a", 10).is_empty());
@@ -1543,15 +1537,7 @@ mod tests {
     #[test]
     fn suggest_articles_caps_at_limit() {
         let docs: Vec<LuminaireDoc> = (1..=10_u8)
-            .map(|i| {
-                mk_doc_with_codes(
-                    i,
-                    "Acme",
-                    "P",
-                    None,
-                    Some(&format!("ART{:03}", i)),
-                )
-            })
+            .map(|i| mk_doc_with_codes(i, "Acme", "P", None, Some(&format!("ART{:03}", i))))
             .collect();
         let idx = InMemoryIndex::from_docs(docs);
         let s = idx.suggest_articles("art", 4);
@@ -1593,8 +1579,8 @@ mod tests {
         ]);
         // Whatever XSD canonical string is at ip_code 0, suggesting
         // its 2-char prefix should hit IpCode kind.
-        let xsd_str = gldf_search_schema::enums::ip_code_str(0)
-            .expect("ip_code(0) exists in xsd table");
+        let xsd_str =
+            gldf_search_schema::enums::ip_code_str(0).expect("ip_code(0) exists in xsd table");
         let prefix: String = xsd_str.chars().take(3).collect::<String>().to_lowercase();
         let s = idx.suggest_facets(&prefix, 10);
         let any_ip = s
@@ -1774,8 +1760,14 @@ mod tests {
             mk_doc(1, "Philips", "P", None),
             mk_doc(2, "ERCO", "P", None),
         ]);
-        assert_eq!(idx.resolve_manufacturer("philips").as_deref(), Some("Philips"));
-        assert_eq!(idx.resolve_manufacturer("PHILIPS").as_deref(), Some("Philips"));
+        assert_eq!(
+            idx.resolve_manufacturer("philips").as_deref(),
+            Some("Philips")
+        );
+        assert_eq!(
+            idx.resolve_manufacturer("PHILIPS").as_deref(),
+            Some("Philips")
+        );
         assert_eq!(idx.resolve_manufacturer("erco").as_deref(), Some("ERCO"));
     }
 
@@ -1825,7 +1817,10 @@ mod tests {
     #[test]
     fn resolve_manufacturer_alias_table_handles_diacritic() {
         let idx = InMemoryIndex::from_docs(vec![mk_doc(1, "nobilé", "P", None)]);
-        assert_eq!(idx.resolve_manufacturer("nobile").as_deref(), Some("nobilé"));
+        assert_eq!(
+            idx.resolve_manufacturer("nobile").as_deref(),
+            Some("nobilé")
+        );
     }
 
     #[test]
@@ -1846,8 +1841,14 @@ mod tests {
         // Corpus has `iGuzzini` (mixed case). Subdomain `iguzzini`
         // must still resolve.
         let idx = InMemoryIndex::from_docs(vec![mk_doc(1, "iGuzzini", "P", None)]);
-        assert_eq!(idx.resolve_manufacturer("iguzzini").as_deref(), Some("iGuzzini"));
-        assert_eq!(idx.resolve_manufacturer("IGUZZINI").as_deref(), Some("iGuzzini"));
+        assert_eq!(
+            idx.resolve_manufacturer("iguzzini").as_deref(),
+            Some("iGuzzini")
+        );
+        assert_eq!(
+            idx.resolve_manufacturer("IGUZZINI").as_deref(),
+            Some("iGuzzini")
+        );
     }
 
     #[test]
@@ -1855,7 +1856,10 @@ mod tests {
         // Leading-digit manufacturers — `3f.gldf-search.de` or
         // `3f-filippi.gldf-search.de` both work.
         let idx = InMemoryIndex::from_docs(vec![mk_doc(1, "3F Filippi", "P", None)]);
-        assert_eq!(idx.resolve_manufacturer("3f").as_deref(), Some("3F Filippi"));
+        assert_eq!(
+            idx.resolve_manufacturer("3f").as_deref(),
+            Some("3F Filippi")
+        );
         assert_eq!(
             idx.resolve_manufacturer("3f-filippi").as_deref(),
             Some("3F Filippi"),

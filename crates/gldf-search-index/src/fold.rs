@@ -61,9 +61,7 @@ pub struct FoldStats {
 /// populating `by_id` — every alias becomes a key that resolves to
 /// the same family doc index. Aliases include the canonical
 /// DocId-for-itself so callers can build the map in one loop.
-pub fn fold_docs(
-    docs: Vec<LuminaireDoc>,
-) -> (Vec<LuminaireDoc>, HashMap<DocId, DocId>, FoldStats) {
+pub fn fold_docs(docs: Vec<LuminaireDoc>) -> (Vec<LuminaireDoc>, HashMap<DocId, DocId>, FoldStats) {
     let mut stats = FoldStats {
         input_docs: docs.len(),
         ..Default::default()

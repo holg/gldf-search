@@ -250,8 +250,7 @@ pub struct VariantDoc {
     /// canonical interface across all gear in the variant; non-
     /// canonical values are dropped.
     #[serde(default)]
-    pub control_gear_interfaces:
-        SmallVec<[crate::enums::ControlGearInterfaceId; 4]>,
+    pub control_gear_interfaces: SmallVec<[crate::enums::ControlGearInterfaceId; 4]>,
     /// `true` when the variant declares an `<Emergency>` block — the
     /// luminaire is intended as emergency lighting. Independent of
     /// `emergency_lighting_type`: a variant can be emergency without

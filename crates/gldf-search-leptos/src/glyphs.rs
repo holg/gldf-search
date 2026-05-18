@@ -19,12 +19,30 @@ macro_rules! glyph {
 /// XSD canonical string → inline SVG markup. Order matches
 /// `gldf_rs::validation::xsd_enums::LIGHT_DISTRIBUTIONS`.
 pub const LVK_GLYPHS: &[(&str, &str)] = &[
-    ("Laterally symmetrical narrow", glyph!("laterally-symmetrical-narrow")),
-    ("Laterally symmetrical medium", glyph!("laterally-symmetrical-medium")),
-    ("Laterally symmetrical wide", glyph!("laterally-symmetrical-wide")),
-    ("Symmetrical in each quadrant", glyph!("symmetrical-in-each-quadrant")),
-    ("Symmetric about 0-180 plane", glyph!("symmetric-about-0-180-plane")),
-    ("Symmetric about 90-270 plane", glyph!("symmetric-about-90-270-plane")),
+    (
+        "Laterally symmetrical narrow",
+        glyph!("laterally-symmetrical-narrow"),
+    ),
+    (
+        "Laterally symmetrical medium",
+        glyph!("laterally-symmetrical-medium"),
+    ),
+    (
+        "Laterally symmetrical wide",
+        glyph!("laterally-symmetrical-wide"),
+    ),
+    (
+        "Symmetrical in each quadrant",
+        glyph!("symmetrical-in-each-quadrant"),
+    ),
+    (
+        "Symmetric about 0-180 plane",
+        glyph!("symmetric-about-0-180-plane"),
+    ),
+    (
+        "Symmetric about 90-270 plane",
+        glyph!("symmetric-about-90-270-plane"),
+    ),
     ("Asymmetrical", glyph!("asymmetrical")),
     ("Asymmetrical flood", glyph!("asymmetrical-flood")),
     ("Asymmetrical wide flood", glyph!("asymmetrical-wide-flood")),

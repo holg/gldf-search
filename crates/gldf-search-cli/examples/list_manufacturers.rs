@@ -41,8 +41,14 @@ fn main() -> Result<()> {
     // policy: subdomain `aec.gldf-search.de` → header `aec` → match
     // any corpus manufacturer whose first token is `AEC`. Show both
     // forms so the operator can audit conflicts.
-    println!("{:>7}  {:<22}  {}", "count", "first-word slug", "manufacturer");
-    println!("{:>7}  {:<22}  {}", "-----", "---------------", "------------");
+    println!(
+        "{:>7}  {:<22}  {}",
+        "count", "first-word slug", "manufacturer"
+    );
+    println!(
+        "{:>7}  {:<22}  {}",
+        "-----", "---------------", "------------"
+    );
     for (name, n) in &rows {
         let slug = name
             .split_whitespace()

@@ -112,7 +112,9 @@ fn parse_args() -> Args {
                 i += 2;
             }
             "--sample" => {
-                sample = args[i + 1].parse().expect("sample must be a positive integer");
+                sample = args[i + 1]
+                    .parse()
+                    .expect("sample must be a positive integer");
                 i += 2;
             }
             "--level" => {
@@ -139,9 +141,19 @@ fn parse_args() -> Args {
         }
     }
     let root = root
-        .or_else(|| std::env::var("LOCAL_GLDF_SEARCH_CORPUS").ok().map(PathBuf::from))
+        .or_else(|| {
+            std::env::var("LOCAL_GLDF_SEARCH_CORPUS")
+                .ok()
+                .map(PathBuf::from)
+        })
         .expect("pass --root /path/to/corpus or set LOCAL_GLDF_SEARCH_CORPUS");
-    Args { root, sample, level, seed, mode }
+    Args {
+        root,
+        sample,
+        level,
+        seed,
+        mode,
+    }
 }
 
 fn main() -> Result<()> {
@@ -179,12 +191,13 @@ fn main() -> Result<()> {
             // Stat every file, pick the N largest. Streaming
             // max-heap would be cheaper for huge corpora; the full
             // sort is fine for 270k entries.
-            eprintln!("stat'ing {} files to find top-{sample_size} by size…", all_gldfs.len());
+            eprintln!(
+                "stat'ing {} files to find top-{sample_size} by size…",
+                all_gldfs.len()
+            );
             let mut sized: Vec<(u64, PathBuf)> = all_gldfs
                 .iter()
-                .filter_map(|p| {
-                    std::fs::metadata(p).ok().map(|m| (m.len(), p.clone()))
-                })
+                .filter_map(|p| std::fs::metadata(p).ok().map(|m| (m.len(), p.clone())))
                 .collect();
             sized.sort_by(|a, b| b.0.cmp(&a.0));
             sized
@@ -248,15 +261,18 @@ fn main() -> Result<()> {
     println!("=== per-file totals ===");
     println!(
         "{:<14}  {:>14}",
-        "raw (unzipped)", human_bytes(per_file_raw)
+        "raw (unzipped)",
+        human_bytes(per_file_raw)
     );
     println!(
         "{:<14}  {:>14}",
-        "deflate (.gldf today)", human_bytes(per_file_deflate)
+        "deflate (.gldf today)",
+        human_bytes(per_file_deflate)
     );
     println!(
         "{:<14}  {:>14}",
-        "zstd (re-archived)", human_bytes(per_file_zstd)
+        "zstd (re-archived)",
+        human_bytes(per_file_zstd)
     );
     if per_file_deflate > 0 {
         let ratio = per_file_zstd as f64 / per_file_deflate as f64;
@@ -280,15 +296,12 @@ fn main() -> Result<()> {
         let projected_zstd = avg_zstd * corpus_n;
         let savings = projected_now - projected_zstd;
         println!();
-        println!("=== whole-corpus projection ({} files) ===", all_gldfs.len());
         println!(
-            "current (deflate):  {}",
-            human_bytes(projected_now as u64)
+            "=== whole-corpus projection ({} files) ===",
+            all_gldfs.len()
         );
-        println!(
-            "after zstd repack:  {}",
-            human_bytes(projected_zstd as u64)
-        );
+        println!("current (deflate):  {}", human_bytes(projected_now as u64));
+        println!("after zstd repack:  {}", human_bytes(projected_zstd as u64));
         println!(
             "saved:              {}  ({:.1}%)",
             human_bytes(savings as u64),
@@ -325,7 +338,8 @@ fn walk_gldfs(root: &Path) -> Result<Vec<PathBuf>> {
     let mut out: Vec<PathBuf> = Vec::new();
     let mut stack: Vec<PathBuf> = vec![root.to_path_buf()];
     while let Some(dir) = stack.pop() {
-        let read = std::fs::read_dir(&dir).with_context(|| format!("read_dir {}", dir.display()))?;
+        let read =
+            std::fs::read_dir(&dir).with_context(|| format!("read_dir {}", dir.display()))?;
         for entry in read.flatten() {
             let p = entry.path();
             if p.is_dir() {

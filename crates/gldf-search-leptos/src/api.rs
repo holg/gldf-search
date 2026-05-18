@@ -261,16 +261,22 @@ pub async fn fetch_facets(
 /// Plain string (not the `ManufacturerScope` newtype) so the wire
 /// type doesn't drag the SSR-only newtype into wasm — newtypes are
 /// for the SSR-side context discipline, not over the wire.
-#[server(FetchManufacturerScope, prefix = "/api/leptos", endpoint = "fetch_manufacturer_scope")]
+#[server(
+    FetchManufacturerScope,
+    prefix = "/api/leptos",
+    endpoint = "fetch_manufacturer_scope"
+)]
 pub async fn fetch_manufacturer_scope() -> Result<Option<String>, ServerFnError> {
     let idx = ssr::expect_index()?;
     Ok(ssr::current_manufacturer_scope(&idx).map(|s| s.0.to_string()))
 }
 
-#[server(FetchRangeBounds, prefix = "/api/leptos", endpoint = "fetch_range_bounds")]
-pub async fn fetch_range_bounds(
-    filter: Option<Filter>,
-) -> Result<RangeBounds, ServerFnError> {
+#[server(
+    FetchRangeBounds,
+    prefix = "/api/leptos",
+    endpoint = "fetch_range_bounds"
+)]
+pub async fn fetch_range_bounds(filter: Option<Filter>) -> Result<RangeBounds, ServerFnError> {
     let idx = ssr::expect_index()?;
     let mut filter = filter.unwrap_or_default();
     if let Some(scope) = ssr::current_manufacturer_scope(&idx) {
@@ -448,7 +454,7 @@ pub async fn fetch_variants(
 
         // English description preferred, else first available.
         // Truncate to 200 chars; the row expands to the full text.
-        let (description_snippet, description_truncated) = pick_description_snippet(&doc);
+        let (description_snippet, description_truncated) = pick_description_snippet(doc);
 
         out.push(VariantPayloadSlim {
             doc_id_hex: r.doc_id.clone(),
@@ -480,9 +486,7 @@ pub async fn fetch_variants(
 /// `(snippet, truncated)` where `truncated` is true when the source
 /// text exceeded the cap.
 #[cfg(feature = "ssr")]
-fn pick_description_snippet(
-    doc: &gldf_search_schema::doc::LuminaireDoc,
-) -> (Option<String>, bool) {
+fn pick_description_snippet(doc: &gldf_search_schema::doc::LuminaireDoc) -> (Option<String>, bool) {
     use gldf_search_schema::Locale;
     const MAX_CHARS: usize = 200;
     let en = Locale::from_str("en");
@@ -501,17 +505,15 @@ fn pick_description_snippet(
     if char_count <= MAX_CHARS {
         return (Some(full.to_string()), false);
     }
-    let mut idx = 0;
-    for (i, _) in full.char_indices().take(MAX_CHARS) {
-        idx = i;
-    }
-    // `idx` is the start of the MAX_CHARSth char; we want the end of it.
-    if let Some((next_idx, _)) = full.char_indices().nth(MAX_CHARS) {
-        idx = next_idx;
-    } else {
-        idx = full.len();
-    }
-    let mut snippet = full[..idx].to_string();
+    // Byte offset at the start of the (MAX_CHARS+1)th char — i.e.
+    // immediately after the last char we keep. Fall back to the
+    // end of the string if for some reason there's no such char.
+    let cut = full
+        .char_indices()
+        .nth(MAX_CHARS)
+        .map(|(i, _)| i)
+        .unwrap_or(full.len());
+    let mut snippet = full[..cut].to_string();
     snippet.push('…');
     (Some(snippet), true)
 }
@@ -619,7 +621,11 @@ pub async fn fetch_ldt(id_hex: String) -> Result<Option<String>, ServerFnError> 
 /// 0-based position of the variant in the GLDF's `<Variants>`
 /// block — the same ordering `VariantDoc.id.0` uses. Pass `None`
 /// for "doc-level / first photometric file" behaviour.
-#[server(FetchLdtForVariant, prefix = "/api/leptos", endpoint = "fetch_ldt_for_variant")]
+#[server(
+    FetchLdtForVariant,
+    prefix = "/api/leptos",
+    endpoint = "fetch_ldt_for_variant"
+)]
 pub async fn fetch_ldt_for_variant(
     id_hex: String,
     variant_index: Option<u16>,
@@ -645,7 +651,7 @@ pub async fn fetch_ldt_for_variant(
     // - Without a variant_index OR doc has a single source, fall
     //   back to the doc-level `source` (the doc-level / first
     //   variant default).
-    let source = resolve_variant_source(&doc, variant_index);
+    let source = resolve_variant_source(doc, variant_index);
     use gldf_search_schema::doc::SourceRef;
     let rel = match source {
         SourceRef::Path(p) => p.to_string(),
@@ -663,12 +669,11 @@ pub async fn fetch_ldt_for_variant(
     } else {
         variant_index.map(|n| n as usize)
     };
-    let result = tokio::task::spawn_blocking(move || {
-        gldf_search_gldf::read_ldt_for_variant(&abs, v_idx)
-    })
-    .await
-    .map_err(|e| ServerFnError::new(format!("join error: {e}")))?
-    .map_err(|e| ServerFnError::new(format!("read_ldt_for_variant: {e}")))?;
+    let result =
+        tokio::task::spawn_blocking(move || gldf_search_gldf::read_ldt_for_variant(&abs, v_idx))
+            .await
+            .map_err(|e| ServerFnError::new(format!("join error: {e}")))?
+            .map_err(|e| ServerFnError::new(format!("read_ldt_for_variant: {e}")))?;
     Ok(result)
 }
 
@@ -708,10 +713,12 @@ fn resolve_variant_source(
 /// Honours the per-subdomain manufacturer scope: requests for a
 /// doc whose manufacturer differs from the locked scope return
 /// `None` (no existence leak across the boundary).
-#[server(FetchProductImage, prefix = "/api/leptos", endpoint = "fetch_product_image")]
-pub async fn fetch_product_image(
-    id_hex: String,
-) -> Result<Option<ProductImage>, ServerFnError> {
+#[server(
+    FetchProductImage,
+    prefix = "/api/leptos",
+    endpoint = "fetch_product_image"
+)]
+pub async fn fetch_product_image(id_hex: String) -> Result<Option<ProductImage>, ServerFnError> {
     fetch_product_image_for_variant(id_hex, None).await
 }
 
@@ -719,7 +726,11 @@ pub async fn fetch_product_image(
 /// heuristic as `fetch_ldt_for_variant`: when image count == variant
 /// count, the variant-index'd image wins; else fall back to the
 /// doc-level first picture.
-#[server(FetchProductImageForVariant, prefix = "/api/leptos", endpoint = "fetch_product_image_for_variant")]
+#[server(
+    FetchProductImageForVariant,
+    prefix = "/api/leptos",
+    endpoint = "fetch_product_image_for_variant"
+)]
 pub async fn fetch_product_image_for_variant(
     id_hex: String,
     variant_index: Option<u16>,
@@ -740,7 +751,7 @@ pub async fn fetch_product_image_for_variant(
             return Ok(None);
         }
     }
-    let source = resolve_variant_source(&doc, variant_index);
+    let source = resolve_variant_source(doc, variant_index);
     let rel = match source {
         SourceRef::Path(p) => p.to_string(),
         SourceRef::Url(_) | SourceRef::ContentOnly => return Ok(None),
@@ -751,12 +762,11 @@ pub async fn fetch_product_image_for_variant(
     } else {
         variant_index.map(|n| n as usize)
     };
-    let result = tokio::task::spawn_blocking(move || {
-        gldf_search_gldf::read_image_for_variant(&abs, v_idx)
-    })
-    .await
-    .map_err(|e| ServerFnError::new(format!("join error: {e}")))?
-    .map_err(|e| ServerFnError::new(format!("read_image_for_variant: {e}")))?;
+    let result =
+        tokio::task::spawn_blocking(move || gldf_search_gldf::read_image_for_variant(&abs, v_idx))
+            .await
+            .map_err(|e| ServerFnError::new(format!("join error: {e}")))?
+            .map_err(|e| ServerFnError::new(format!("read_image_for_variant: {e}")))?;
     Ok(result.map(|(mime, bytes)| ProductImage {
         mime,
         data_base64: base64::engine::general_purpose::STANDARD.encode(&bytes),
@@ -825,9 +835,7 @@ pub mod ssr {
     /// Called once per server-fn body. The `Parts` lookup is
     /// `use_context::<axum::http::request::Parts>()` — Leptos's axum
     /// adapter installs this automatically.
-    pub(crate) fn current_manufacturer_scope(
-        idx: &InMemoryIndex,
-    ) -> Option<ManufacturerScope> {
+    pub(crate) fn current_manufacturer_scope(idx: &InMemoryIndex) -> Option<ManufacturerScope> {
         // Prefer an explicit `ManufacturerScope` if the server-side
         // page-render closure pre-installed one (cheaper than the
         // header lookup, and lets non-axum tests inject a scope).
@@ -846,7 +854,10 @@ pub mod ssr {
     /// Apply the manufacturer scope (if any) to a filter in-place.
     /// Overwrites whatever the client requested — the subdomain is
     /// authoritative. Idempotent and cheap.
-    pub(crate) fn lock_manufacturer(filter: &mut gldf_search_schema::filter::Filter, scope: &ManufacturerScope) {
+    pub(crate) fn lock_manufacturer(
+        filter: &mut gldf_search_schema::filter::Filter,
+        scope: &ManufacturerScope,
+    ) {
         use smallvec::smallvec;
         filter.manufacturer = Some(smallvec![scope.0.clone()]);
     }
@@ -866,9 +877,8 @@ pub mod ssr {
 
     /// Read the [`CorpusRoot`] out of Leptos's request-scoped context.
     pub(crate) fn expect_corpus_root() -> Result<PathBuf, ServerFnError> {
-        let cr = use_context::<CorpusRoot>().ok_or_else(|| {
-            ServerFnError::new("CorpusRoot missing from Leptos context")
-        })?;
+        let cr = use_context::<CorpusRoot>()
+            .ok_or_else(|| ServerFnError::new("CorpusRoot missing from Leptos context"))?;
         Ok(cr.0)
     }
 

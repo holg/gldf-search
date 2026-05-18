@@ -281,7 +281,7 @@ pub fn extract(gldf: &GldfProduct, input: ExtractInput<'_>) -> ExtractOutput {
             has_emergency_lighting,
             emergency_lighting_type,
             emitter_count: 0, // populated by the LDC pass later
-            source_index: 0, // un-folded — single source, index 0
+            source_index: 0,  // un-folded — single source, index 0
         });
     }
 
@@ -517,7 +517,6 @@ fn build_photometry(
             .map(PhotometricSymmetryHint::from_light_distribution_id)
             .unwrap_or(PhotometricSymmetryHint::Unknown),
         light_distribution,
-        ..Default::default()
     })
 }
 
@@ -584,7 +583,6 @@ fn merge_photometry(
                 dlor: None,
                 symmetry: PhotometricSymmetryHint::from_light_distribution_id(ld),
                 light_distribution: Some(ld),
-                ..Default::default()
             })
         }
         (Some(l), None) => Some(l),

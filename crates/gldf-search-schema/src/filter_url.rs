@@ -462,8 +462,7 @@ mod tests {
             ..Default::default()
         };
         let pairs = f.to_query_pairs();
-        let mut by_key: std::collections::HashMap<&str, String> =
-            pairs.into_iter().collect();
+        let mut by_key: std::collections::HashMap<&str, String> = pairs.into_iter().collect();
         assert_eq!(by_key.remove("phot"), Some("1".to_string()));
         assert_eq!(by_key.remove("m3d"), Some("0".to_string()));
         assert!(by_key.is_empty());
@@ -489,7 +488,10 @@ mod tests {
     #[test]
     fn manufacturer_with_special_chars_round_trip() {
         let f = Filter {
-            manufacturer: Some(smallvec![CompactString::from("ERCO"), CompactString::from("Zumtobel")]),
+            manufacturer: Some(smallvec![
+                CompactString::from("ERCO"),
+                CompactString::from("Zumtobel")
+            ]),
             ..Default::default()
         };
         let pairs = f.to_query_pairs();
@@ -497,10 +499,10 @@ mod tests {
 
         let back = Filter::from_query(pairs);
         let mfr = back.manufacturer.expect("manufacturer set");
-        assert_eq!(mfr.as_slice(), &[
-            CompactString::from("ERCO"),
-            CompactString::from("Zumtobel"),
-        ]);
+        assert_eq!(
+            mfr.as_slice(),
+            &[CompactString::from("ERCO"), CompactString::from("Zumtobel"),]
+        );
     }
 
     #[test]
@@ -516,10 +518,7 @@ mod tests {
 
     #[test]
     fn malformed_range_falls_back_to_none() {
-        let back = Filter::from_query(vec![
-            ("text", "led"),
-            ("flux", "not-a-range"),
-        ]);
+        let back = Filter::from_query(vec![("text", "led"), ("flux", "not-a-range")]);
         assert_eq!(back.text.as_deref(), Some("led"));
         assert_eq!(back.flux_lm, None);
     }

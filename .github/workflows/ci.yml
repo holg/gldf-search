@@ -1,0 +1,106 @@
+# Mirror of `scripts/test-ci-locally.sh`. Every push and PR runs the
+# same five checks the operator runs locally before deploying.
+#
+# Notes:
+# - Two sibling crates (`gldf-rs`, `eulumdat-rs`) are pulled in via
+#   workspace `[patch]` path-deps; CI checks them out under the same
+#   relative paths the Cargo.toml expects.
+# - `cargo leptos` is NOT installed. The CI does `cargo check` only;
+#   the full bundle build runs locally before deploy. Keeping CI lean
+#   so feedback stays fast (~3-5 min per push).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  # Same as scripts/test-ci-locally.sh: override per-repo via .env if
+  # the crate names ever drift from the defaults.
+  FRONTEND_PKG: gldf-search-leptos
+  SERVER_PKG: gldf-search-server
+
+jobs:
+  ci:
+    name: lint + check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout gldf-search
+        uses: actions/checkout@v4
+        with:
+          path: gldf-search
+
+      # Path-dep sibling: GLDF parser. Workspace Cargo.toml expects
+      # it at `../gldf-rs` relative to the repo root.
+      - name: Checkout gldf-rs (sibling path-dep)
+        uses: actions/checkout@v4
+        with:
+          repository: holg/gldf-rs
+          path: gldf-rs
+
+      # Path-dep sibling: EULUMDAT parser. Workspace Cargo.toml
+      # expects it at `../eulumdat-rs`.
+      - name: Checkout eulumdat-rs (sibling path-dep)
+        uses: actions/checkout@v4
+        with:
+          repository: holg/eulumdat-rs
+          path: eulumdat-rs
+
+      - name: Install Rust toolchain (stable + rustfmt + clippy + wasm32)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: gldf-search
+
+      # Step 1: fmt — per-package, NOT `--all`.
+      #
+      # `cargo fmt --all` walks into sibling workspaces reachable via
+      # path-deps (gldf-rs, eulumdat-rs) and tries to format their
+      # sources too. Their fmt status is unrelated to ours; iterate
+      # explicitly over our own workspace members.
+      - name: cargo fmt --check (per-package)
+        working-directory: gldf-search
+        run: |
+          set -e
+          for pkg in gldf-search-schema gldf-search-gldf gldf-search-index \
+                     gldf-search-leptos gldf-search-server gldf-search-cli; do
+            cargo fmt -p "$pkg" -- --check
+          done
+
+      # Step 2: clippy (SSR side of the Leptos crate)
+      - name: cargo clippy (SSR)
+        working-directory: gldf-search
+        run: cargo clippy --package ${{ env.FRONTEND_PKG }} --features ssr -- -D warnings
+
+      # Step 3: check (SSR side)
+      - name: cargo check (SSR)
+        working-directory: gldf-search
+        run: cargo check --package ${{ env.FRONTEND_PKG }} --features ssr
+
+      # Step 4: check (WASM hydrate side)
+      - name: cargo check (WASM hydrate)
+        working-directory: gldf-search
+        run: cargo check --package ${{ env.FRONTEND_PKG }} --features hydrate --target wasm32-unknown-unknown
+
+      # Step 5: check (server binary, native host target)
+      - name: cargo check (server)
+        working-directory: gldf-search
+        run: cargo check --package ${{ env.SERVER_PKG }}
+
+      # Bonus: the project's own unit + doc tests. Fast (~150 tests,
+      # all pure-Rust, no fixtures > a few KB) so worth running in CI
+      # even though the local script skips them.
+      - name: cargo test --workspace
+        working-directory: gldf-search
+        run: cargo test --workspace --no-fail-fast

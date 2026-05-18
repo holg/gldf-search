@@ -33,13 +33,26 @@ echo -e "${YELLOW}=== gldf-search local checks ===${NC}"
 echo -e "    frontend: $FRONTEND_PKG"
 echo -e "    server:   $SERVER_PKG\n"
 
-# Step 1: cargo fmt
+# Step 1: cargo fmt — per-package, NOT `--all`.
+#
+# `cargo fmt --all` walks into sibling workspaces reachable via
+# path-deps (e.g. our `../gldf-rs` and `../eulumdat-rs`) and tries to
+# format THEIR sources too. That's both rude (we don't own those
+# repos in this CI scope) and breaks: their fmt status is unrelated
+# to our checks. Iterate explicitly over our own workspace members.
 echo -e "${YELLOW}Step 1: cargo fmt check...${NC}"
-if cargo fmt --all -- --check; then
+fmt_failed=0
+for pkg in gldf-search-schema gldf-search-gldf gldf-search-index \
+           gldf-search-leptos gldf-search-server gldf-search-cli; do
+    if ! cargo fmt -p "$pkg" -- --check; then
+        echo -e "${RED}✗ fmt failed for $pkg${NC}"
+        fmt_failed=1
+    fi
+done
+if (( fmt_failed == 0 )); then
     echo -e "${GREEN}✓ fmt passed${NC}\n"
 else
-    echo -e "${RED}✗ fmt failed${NC}"
-    echo -e "${YELLOW}Run 'cargo fmt --all' to fix${NC}\n"
+    echo -e "${YELLOW}Run 'cargo fmt -p <pkg>' to fix${NC}\n"
     exit 1
 fi
 

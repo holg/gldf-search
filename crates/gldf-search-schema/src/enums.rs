@@ -164,8 +164,19 @@ pub fn application_leaf(id: ApplicationId) -> Option<&'static str> {
 /// microsecond work.
 pub fn application_leaves_lower() -> Vec<(String, ApplicationId)> {
     const STOPWORDS: &[&str] = &[
-        "other", "general", "areas", "zones", "lighting", "fields", "facilities", "places",
-        "rooms", "stations", "spaces", "paths", "roads",
+        "other",
+        "general",
+        "areas",
+        "zones",
+        "lighting",
+        "fields",
+        "facilities",
+        "places",
+        "rooms",
+        "stations",
+        "spaces",
+        "paths",
+        "roads",
     ];
 
     let mut out: Vec<(String, ApplicationId)> = Vec::new();
@@ -195,10 +206,7 @@ pub fn application_leaves_lower() -> Vec<(String, ApplicationId)> {
         let phrase = lowered.split_whitespace().collect::<Vec<_>>().join(" ");
 
         let mut probes_for_id: Vec<String> = Vec::new();
-        if phrase.len() >= 4
-            && !STOPWORDS.contains(&phrase.as_str())
-            && phrase.contains(' ')
-        {
+        if phrase.len() >= 4 && !STOPWORDS.contains(&phrase.as_str()) && phrase.contains(' ') {
             probes_for_id.push(phrase.clone());
         }
         for tok in phrase.split_whitespace() {

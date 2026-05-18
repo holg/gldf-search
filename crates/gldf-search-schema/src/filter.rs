@@ -160,22 +160,6 @@ pub struct Filter {
 }
 
 impl Filter {
-    /// True if the document satisfies all populated filter fields.
-    /// Variant-scoped fields are checked with "any variant matches"
-    /// semantics.
-    ///
-    /// Predicate order is **cheap-first** so most non-matching docs
-    /// are rejected before we touch the text-substring scan or walk
-    /// the variants:
-    ///
-    /// 1. Single-value `Option<u8>` facets — one int compare per slot
-    /// 2. Multi-value `SmallVec<u8>` facets — short linear scan
-    /// 3. Manufacturer — string equality over a small `Option<list>`
-    /// 4. Photometry tristate — walks variants but only once per doc
-    /// 5. Text — case-lowering + substring over potentially long
-    ///    description strings; the most expensive doc-scoped check
-    /// 6. Variant predicates — last; only fires when there's no
-    ///    cheaper way to reject the doc
     /// Doc-scoped predicate only — applies fields that don't
     /// reference a specific variant. The full [`matches_doc`] AND-s
     /// this with "at least one variant matches"; variant-grain
@@ -252,6 +236,19 @@ impl Filter {
     /// Variant-scoped fields are checked with "any variant matches"
     /// semantics. Doc-grain truth value — variant-grain callers use
     /// [`matches_doc_scope`] + [`matches_variant`] separately.
+    ///
+    /// Predicate order is **cheap-first** so most non-matching docs
+    /// are rejected before we touch the text-substring scan or walk
+    /// the variants:
+    ///
+    /// 1. Single-value `Option<u8>` facets — one int compare per slot
+    /// 2. Multi-value `SmallVec<u8>` facets — short linear scan
+    /// 3. Manufacturer — string equality over a small `Option<list>`
+    /// 4. Photometry tristate — walks variants but only once per doc
+    /// 5. Text — case-lowering + substring over potentially long
+    ///    description strings; the most expensive doc-scoped check
+    /// 6. Variant predicates — last; only fires when there's no
+    ///    cheaper way to reject the doc
     pub fn matches_doc(&self, doc: &LuminaireDoc) -> bool {
         // 1. Single-value u8 facets — cheapest possible reject.
         if !self.ip_code.is_empty() && !contains_opt(&self.ip_code, doc.ip_code) {

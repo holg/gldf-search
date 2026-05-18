@@ -219,11 +219,7 @@ fn dispatch(cli: Cli) -> Result<()> {
                 };
                 search::run(&args)
             }
-            CorpusCmd::BuildIndex {
-                root,
-                out,
-                threads,
-            } => run_build_index(root, out, threads),
+            CorpusCmd::BuildIndex { root, out, threads } => run_build_index(root, out, threads),
         },
     }
 }

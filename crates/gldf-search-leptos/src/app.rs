@@ -158,9 +158,10 @@ fn SearchPage() -> impl IntoView {
     // filter; this Resource exists purely so the UI knows whether to
     // hide the Manufacturer facet and render a "scoped to <name>"
     // banner. Read-once on page load.
-    let manufacturer_scope = Resource::new(|| (), |_| async move {
-        crate::api::fetch_manufacturer_scope().await
-    });
+    let manufacturer_scope = Resource::new(
+        || (),
+        |_| async move { crate::api::fetch_manufacturer_scope().await },
+    );
 
     // Article-lookup resource — fires only when `article` is Some.
     let article_hits = Resource::new(
@@ -518,7 +519,8 @@ fn ArticleResults(
 #[component]
 fn VariantList(
     /// Running list of variant-grain hits (grows on infinite-scroll).
-    #[prop(into)] hits: Signal<Vec<SearchHit>>,
+    #[prop(into)]
+    hits: Signal<Vec<SearchHit>>,
     filter: RwSignal<Filter>,
 ) -> impl IntoView {
     let _ = filter; // reserved for future row-level interactions

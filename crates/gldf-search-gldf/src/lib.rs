@@ -56,8 +56,8 @@ pub fn read_first_ldt(path: &std::path::Path) -> anyhow::Result<Option<String>> 
 /// where each variant ships its own LDT. When counts disagree we
 /// fall back to the first file — better than guessing wrong.
 ///
-/// The proper XSD traversal (`Variant > Geometry > EmitterReference
-/// > Emitter > LightSource > Photometry > PhotometryFileReference`)
+/// The proper XSD traversal (Variant → Geometry → EmitterReference
+/// → Emitter → LightSource → Photometry → PhotometryFileReference)
 /// is a follow-up; the count-equality heuristic covers every
 /// family-style file in the current corpus (audited 2026-05-17).
 pub fn read_ldt_for_variant(
@@ -109,9 +109,7 @@ pub fn read_ldt_for_variant(
 ///   bytes through, with the MIME the manifest declared.
 /// - The server calls this from a `spawn_blocking` task because the
 ///   `gldf-rs` reader reopens the zip from disk (blocking I/O).
-pub fn read_product_image(
-    path: &std::path::Path,
-) -> anyhow::Result<Option<(String, Vec<u8>)>> {
+pub fn read_product_image(path: &std::path::Path) -> anyhow::Result<Option<(String, Vec<u8>)>> {
     read_image_for_variant(path, None)
 }
 

@@ -26,11 +26,11 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::Parser;
 use gldf_search_index::InMemoryIndex;
+use gldf_search_leptos::api::ssr::CorpusRoot;
 use gldf_search_leptos::{
     shell, App, FetchDoc, FetchDocs, FetchFacets, FetchLdt, IndexHandle, LookupArticle, SearchDocs,
     SuggestArticles, SuggestFacets,
 };
-use gldf_search_leptos::api::ssr::CorpusRoot;
 use gldf_search_schema::ViewerConfig;
 use leptos::prelude::*;
 use leptos_axum::{generate_route_list, LeptosRoutes};

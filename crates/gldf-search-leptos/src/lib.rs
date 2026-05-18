@@ -15,7 +15,19 @@
 //! server startup by `gldf-search-server`; the UI only consumes the
 //! resulting `LuminaireDoc` types.
 
-#![allow(non_snake_case)] // Leptos components are PascalCase by convention.
+#![allow(non_snake_case)]
+// Leptos components are PascalCase by convention.
+// Clippy style lints that we deliberately ignore. The lints catch
+// real bugs by default; these specific ones flag idiomatic shapes
+// the Leptos closure-heavy code prefers (and that rustfmt won't
+// rewrite for us anyway).
+#![allow(
+    clippy::needless_return,        // `return ();` inside long event handlers reads as intent.
+    clippy::needless_borrow,        // Refactor noise around `&Arc<Foo>` etc.
+    clippy::clone_on_copy,          // Explicit clones make the lifetime story easier to skim.
+    clippy::redundant_closure,      // |x| f(x) is sometimes clearer than just `f`.
+    clippy::type_complexity,        // Some signal types are unavoidably nested.
+)]
 
 pub mod api;
 pub mod app;

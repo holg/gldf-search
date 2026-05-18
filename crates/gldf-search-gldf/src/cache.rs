@@ -223,5 +223,4 @@ mod tests {
         assert!(err.to_string().contains("magic mismatch"));
         std::fs::remove_file(&tmp).ok();
     }
-
 }
