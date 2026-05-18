@@ -27,14 +27,8 @@ homepage = "https://github.com/holg/gldf-search"
 #
 # Audited 2026-05-18:
 #   - eulumdat 0.7.0  on crates.io ↔ local sibling 0.7.0 ✓
-#   - gldf-rs 0.3.3   on crates.io is BEHIND the local sibling: our
-#     `validation::xsd_enums` module isn't in the published tarball
-#     yet (see memory `project_xsd_enums_layer.md`). Until a newer
-#     gldf-rs release lands, the `version = ...` pin below is
-#     ASPIRATIONAL — `cargo publish` will fail on the verify step.
-#     Cargo doesn't check `version` during `cargo build`, so local
-#     dev continues to work.
-gldf-rs = { path = "../gldf-rs/crates/gldf-rs-lib", version = "0.3.3", default-features = false, features = ["eulumdat"] }
+#   - gldf-rs 0.3.4   on crates.io (shipped `validation::xsd_enums`) ✓
+gldf-rs = { path = "../gldf-rs/crates/gldf-rs-lib", version = "0.3.4", default-features = false, features = ["eulumdat"] }
 # Photometric LDT parser, also pulled in transitively by gldf-rs's
 # `eulumdat` feature. We path-dep directly so we can `use eulumdat::*`
 # without going through gldf-rs (which doesn't re-export the crate).
