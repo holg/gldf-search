@@ -19,24 +19,22 @@ repository = "https://github.com/holg/gldf-search"
 homepage = "https://github.com/holg/gldf-search"
 
 [workspace.dependencies]
-# Sibling parsers — path-deps for now. Publishing to crates.io
-# requires switching to `version = "X"` (or mixed `path + version`),
-# but cargo validates the path checkout against the version
-# requirement, so local-sibling and crates.io versions have to be
-# SemVer-compatible. As of 2026-05-18:
-#   - gldf-rs 0.3.3 on crates.io == local sibling. Could pin.
-#   - eulumdat 0.6.0 on crates.io, local sibling at 0.7.0 (bumped
-#     for unrelated 3D bevy work). Publishing waits on eulumdat 0.7
-#     hitting crates.io.
-# Until both are ready, keep path-only. Re-add `version = ...` here
-# in lock-step with the crates.io releases.
-gldf-rs = { path = "../gldf-rs/crates/gldf-rs-lib", default-features = false, features = ["eulumdat"] }
+# Sibling parsers — mixed path+version. Local builds use the path
+# checkout; `cargo publish` strips `path` and keeps `version` for
+# the registry manifest. Cargo validates the path checkout against
+# the version requirement, so versions here must stay in lock-step
+# with crates.io.
+#
+# Audited 2026-05-18:
+#   - gldf-rs 0.3.3   on crates.io ↔ local sibling 0.3.3
+#   - eulumdat 0.7.0  on crates.io ↔ local sibling 0.7.0
+gldf-rs = { path = "../gldf-rs/crates/gldf-rs-lib", version = "0.3.3", default-features = false, features = ["eulumdat"] }
 # Photometric LDT parser, also pulled in transitively by gldf-rs's
 # `eulumdat` feature. We path-dep directly so we can `use eulumdat::*`
 # without going through gldf-rs (which doesn't re-export the crate).
 # Same path the gldf-rs workspace uses, so cargo unifies into one
 # version.
-eulumdat = { path = "../eulumdat-rs/crates/eulumdat" }
+eulumdat = { path = "../eulumdat-rs/crates/eulumdat", version = "0.7.0" }
 # Inter-workspace deps — version mirrors `[workspace.package].version`
 # so a workspace-wide bump keeps every internal edge pinned tight.
 gldf-search-schema = { path = "crates/gldf-search-schema", version = "0.1.0" }
