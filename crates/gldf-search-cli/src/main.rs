@@ -307,6 +307,50 @@ fn run_build_index(root: Option<PathBuf>, out: Option<PathBuf>, threads: usize) 
         .canonicalize()
         .with_context(|| format!("canonicalize({})", root.display()))?;
 
+    // Step 0: incremental reuse map. Read the existing cache if it
+    // exists and is on the current schema; build a path-keyed lookup
+    // of docs whose `file_meta` proves the source `.gldf` hasn't
+    // changed. Cache miss is a normal first-build situation — we
+    // fall through to a full extract.
+    //
+    // The reuse rule: `cached.file_meta.mtime_epoch_s == disk_mtime`
+    // AND `cached.file_meta.size_bytes == disk_size`. If either
+    // differs (or either is missing), re-extract. Belt-and-suspenders
+    // — same-mtime-but-changed-content is rare, but the size compare
+    // is free.
+    use gldf_search_schema::doc::{LuminaireDoc, SourceRef};
+    let reuse_map: std::collections::HashMap<String, LuminaireDoc> =
+        if cache_path.exists() {
+            match gldf_search_gldf::cache::read(&cache_path) {
+                Ok(cached_docs) => {
+                    let n_cached = cached_docs.len();
+                    let m: std::collections::HashMap<String, LuminaireDoc> = cached_docs
+                        .into_iter()
+                        .filter_map(|d| match &d.source {
+                            SourceRef::Path(p) => Some((p.to_string(), d)),
+                            _ => None,
+                        })
+                        .collect();
+                    eprintln!(
+                        "loaded {} reusable docs from cache at {}",
+                        m.len(),
+                        cache_path.display()
+                    );
+                    let _ = n_cached;
+                    m
+                }
+                Err(e) => {
+                    eprintln!(
+                        "existing cache at {} unusable ({e:#}); falling through to full extract",
+                        cache_path.display()
+                    );
+                    std::collections::HashMap::new()
+                }
+            }
+        } else {
+            std::collections::HashMap::new()
+        };
+
     // Step 1: walk to collect every .gldf path. Serial — directory
     // I/O is fast and rayon can't help with stat() bottlenecks.
     let walk_started = std::time::Instant::now();
@@ -322,16 +366,20 @@ fn run_build_index(root: Option<PathBuf>, out: Option<PathBuf>, threads: usize) 
         anyhow::bail!("no .gldf files under {}", root_canon.display());
     }
 
-    // Step 2: parallel extract. Each thread opens its own file, parses,
-    // and runs the extractor. Errors are logged + the doc dropped —
-    // partial indexing is better than failing the whole build.
+    // Step 2: incremental extract. Each worker either reuses a
+    // cached doc (when mtime+size match) or runs the full extractor.
+    // Files no longer on disk are implicitly dropped — the walk
+    // above only lists current files, so deleted entries fall out of
+    // the new output naturally.
     eprintln!("extracting with {pool_size} worker threads …");
     let extract_started = std::time::Instant::now();
-    let docs = parallel_extract(&paths, &root_canon);
+    let (docs, reused) = incremental_extract(&paths, &root_canon, &reuse_map);
     eprintln!(
-        "extracted {} of {n_files} docs in {:.1?}",
+        "extracted {} of {n_files} docs in {:.1?} ({} reused, {} re-extracted)",
         docs.len(),
-        extract_started.elapsed()
+        extract_started.elapsed(),
+        reused,
+        docs.len() - reused
     );
 
     // Step 3: serialise + atomically write. The cache stores the
@@ -378,19 +426,34 @@ fn walk_collect_gldfs(dir: &std::path::Path, out: &mut Vec<PathBuf>) -> Result<(
     Ok(())
 }
 
-/// Parallel extract over a list of absolute `.gldf` paths. Returns
-/// `LuminaireDoc`s in arbitrary order — the in-memory index doesn't
-/// care, and skipping the order constraint avoids a global sync.
-fn parallel_extract(
+/// Incremental extract: walks the given paths, reuses cached docs
+/// when the source `.gldf`'s mtime AND size match, otherwise runs
+/// the full extractor on the file. Returns `(docs, reused_count)`.
+///
+/// The reuse rule is intentionally conservative — both mtime and
+/// size must match. Same-mtime-but-different-content is rare (rsync
+/// `--checksum` is the only realistic source), but size catches it
+/// for free. False negatives (re-extract when reuse would have been
+/// safe) cost CPU but never correctness; false positives (reuse
+/// when content changed) are silent bugs, so we lean strict.
+///
+/// File-meta is populated for every output doc — even reused ones —
+/// so the next incremental build can chain off this one without a
+/// gap.
+fn incremental_extract(
     paths: &[PathBuf],
     root: &std::path::Path,
-) -> Vec<gldf_search_schema::doc::LuminaireDoc> {
+    reuse_map: &std::collections::HashMap<String, gldf_search_schema::doc::LuminaireDoc>,
+) -> (Vec<gldf_search_schema::doc::LuminaireDoc>, usize) {
     use gldf_rs::gldf::GldfProduct;
     use gldf_search_gldf::{extract, ExtractInput};
-    use gldf_search_schema::doc::SourceRef;
+    use gldf_search_schema::doc::{FileMeta, LuminaireDoc, SourceRef};
     use rayon::prelude::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
-    paths
+    let reused = AtomicUsize::new(0);
+
+    let docs: Vec<LuminaireDoc> = paths
         .par_iter()
         .filter_map(|path| {
             let path_str = path.to_string_lossy().into_owned();
@@ -403,26 +466,39 @@ fn parallel_extract(
                         .map(|n| n.to_string_lossy().into_owned())
                         .unwrap_or_else(|| path_str.clone())
                 });
-            // DocId fallback: BLAKE3 the relative corpus path. Many
-            // GLDFs (e.g. Deko-Light's family.gldf exports) omit
-            // `<UniqueGldfId>` — without a fallback every such doc
-            // collides on the all-zero sentinel.
-            //
-            // Path-based (not byte-hashed) intentionally:
-            // - **Reproducible** across re-indexing — same file at
-            //   same path keeps the same DocId, so URL bookmarks and
-            //   search ranks don't ghost when a manufacturer ships
-            //   a v2 of the GLDF with the same filename.
-            // - **Free** — no second `std::fs::read` per doc. The
-            //   previous content-hash fallback doubled the wall-clock
-            //   (~8 min → 15 min) because each rayon worker was
-            //   slurping the whole file before the zip parse, and on
-            //   external storage the bus serialises.
-            // - **Unique** — filesystem paths are unique by
-            //   construction. We feed the relative path (e.g.
-            //   `deko-light/aaron/aaron.gldf`) so the same corpus on
-            //   different machines / mount points produces the same
-            //   DocId.
+
+            // Stat once — used both for the reuse check and (if we
+            // do extract) for the freshly-written `FileMeta`.
+            let (disk_size, disk_mtime) = match std::fs::metadata(path) {
+                Ok(m) => {
+                    let mtime = m
+                        .modified()
+                        .ok()
+                        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                        .map(|d| d.as_secs());
+                    (m.len(), mtime)
+                }
+                Err(_) => (0, None),
+            };
+
+            // Reuse path: cached doc's file_meta matches disk. Both
+            // size and mtime must agree; if either side has no
+            // mtime info (e.g. cache from a build that didn't
+            // populate it) we fall through to a fresh extract so
+            // the new cache has clean file_meta going forward.
+            if let Some(cached) = reuse_map.get(&rel) {
+                if cached.file_meta.size_bytes == disk_size
+                    && cached.file_meta.mtime_epoch_s.is_some()
+                    && cached.file_meta.mtime_epoch_s == disk_mtime
+                {
+                    reused.fetch_add(1, Ordering::Relaxed);
+                    return Some(cached.clone());
+                }
+            }
+
+            // DocId fallback path-based hash — see commit history
+            // for the why (byte-hashing doubled wall-clock on
+            // external SSDs; path-based is reproducible).
             let path_hash_input = format!("path:{}", rel);
             match GldfProduct::load_gldf(&path_str) {
                 Ok(gldf) => {
@@ -431,7 +507,14 @@ fn parallel_extract(
                         ExtractInput {
                             source: Some(SourceRef::Path(rel.into())),
                             raw_bytes: Some(path_hash_input.as_bytes()),
-                            ..Default::default()
+                            file_meta: Some(FileMeta {
+                                size_bytes: disk_size,
+                                mtime_epoch_s: disk_mtime,
+                                // format_version is set inside extract()
+                                // from <Header><FormatVersion>; pass None
+                                // here so the extractor's default wins.
+                                format_version: None,
+                            }),
                         },
                     );
                     Some(out.doc)
@@ -442,7 +525,9 @@ fn parallel_extract(
                 }
             }
         })
-        .collect()
+        .collect();
+
+    (docs, reused.load(Ordering::Relaxed))
 }
 
 fn run_inspect(files: &[PathBuf]) -> Result<()> {

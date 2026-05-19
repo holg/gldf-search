@@ -713,6 +713,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "eulumdat"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3cfd021742706c4079e3a616d21cef00f7017ba5b284e7dcf5f9e7371d7a434c"
+dependencies = [
+ "anyhow",
+ "quick-xml",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "event-listener"
 version = "5.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -902,12 +915,12 @@ dependencies = [
 
 [[package]]
 name = "gldf-rs"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "base64",
  "chrono",
- "eulumdat",
+ "eulumdat 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "quick-xml",
  "regex",
  "serde",
@@ -944,7 +957,7 @@ dependencies = [
  "bincode",
  "blake3",
  "compact_str",
- "eulumdat",
+ "eulumdat 0.7.0",
  "gldf-rs",
  "gldf-search-schema",
  "regex",
@@ -971,7 +984,7 @@ dependencies = [
  "base64",
  "compact_str",
  "console_error_panic_hook",
- "eulumdat",
+ "eulumdat 0.7.0",
  "gldf-search-gldf",
  "gldf-search-index",
  "gldf-search-schema",

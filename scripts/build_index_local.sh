@@ -117,7 +117,11 @@ echo "out     : $OUT_CACHE"
 echo "threads : ${THREADS:-all}"
 echo
 
-cargo build --release -p gldf-search-cli
+# Package was renamed from `gldf-search-cli` to `gldf-search` at the
+# `[package].name` level when we set up crates.io publishing (so
+# `cargo install gldf-search` lands the CLI). The crate directory
+# is still `crates/gldf-search-cli`; only the published name changed.
+cargo build --release -p gldf-search
 
 ./target/release/gldf-search corpus build-index \
     --root "$LOCAL_CORPUS" \
